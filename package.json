@@ -1,6 +1,6 @@
 {
     "name": "cocos2dx",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "description": "cocos2dx JS for module usage",
     "main": "cocos2dx/index.js",
     "types": "cocos2dx/index.d.ts",
@@ -11,6 +11,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "mp-pack-cli dev .",
         "build": "mp-pack-cli build .",
+        "dist": "mp-pack-cli build:ssr index.js --outDir dist",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
     },
     "devDependencies": {

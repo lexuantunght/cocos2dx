@@ -1,9 +1,8 @@
 import React from 'react';
-import { cocos2dx } from 'cocos2dx';
+import { cc } from '../cocos2dx/index';
 
 function App() {
     React.useEffect(() => {
-        const { cc } = cocos2dx;
         const config = {
             debugMode: 1,
             frameRate: 60,
