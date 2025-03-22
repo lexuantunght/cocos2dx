@@ -1,0 +1,26 @@
+{
+    "name": "cocos2dx",
+    "version": "3.13.0",
+    "description": "cocos2dx JS for module usage",
+    "main": "cocos2dx/index.js",
+    "types": "cocos2dx/index.d.ts",
+    "files": [
+        "cocos2dx"
+    ],
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "mp-pack-cli dev .",
+        "build": "mp-pack-cli build .",
+        "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    },
+    "devDependencies": {
+        "react": "17.0.2",
+        "react-dom": "17.0.2",
+        "@types/react": "^17",
+        "@types/react-dom": "^17",
+        "eslint": "^7.32.0",
+        "mp-pack-cli": "^1.2.1",
+        "typescript": "^4.9.5"
+    },
+    "license": "MIT"
+}
