@@ -5847,5 +5847,3 @@ declare module cp {
         anchr2:any;
     }
 }
-
-export const cocos2dx: { cc: typeof cc, ccs: typeof ccs, ccui: typeof ccui };
