@@ -1,6 +1,6 @@
 {
     "name": "cocos2dx",
-    "version": "3.13.0",
+    "version": "1.0.0",
     "description": "cocos2dx JS for module usage",
     "main": "cocos2dx/index.js",
     "types": "cocos2dx/index.d.ts",

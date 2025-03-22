@@ -12,4 +12,4 @@ const vec2 = new cc.Vec2(0, 0);
 
 ```
 
-# Missing types at index.d.ts are updating
+# Missing types at index.d.ts are being updated
