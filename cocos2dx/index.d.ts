@@ -31,6 +31,7 @@ declare module cc {
     var director: Director;
     var winSize:cc.Size;
     var view:GLView;
+    var game:Game;
     var visibleRect : {
         topLeft: cc.Point;
         topRight: cc.Point;
@@ -166,6 +167,45 @@ declare module cc {
     var _RENDER_TYPE_WEBGL : number;
 
     var eventManager: EventDispatcher;
+
+    class Game {
+        constructor();
+        
+        // Game Configurations
+        CONFIG_KEY: {
+            width: string;
+            height: string;
+            modules: string;
+            debugMode: string;
+            showFPS: string;
+            frameRate: string;
+            id: string;
+            renderMode: string;
+            jsList: string;
+        };
+    
+        onStart: () => void; // Callback when game starts
+        onStop: () => void; // Callback when game stops
+        
+        // Initialization and Running
+        init(config: any): void;
+        run(config?: any, onStart?: Function): void;
+        
+        // Pause and Resume
+        pause(): void;
+        resume(): void;
+        
+        // Other Methods
+        end(): void;
+        restart(): void;
+        prepare(onPrepared?: Function): void;
+        setFrameRate(frameRate: number): void;
+        getFrameRate(): number;
+        getFrameSize(): cc.Size;
+        setFrameSize(width: number, height: number): void;
+        getRenderType(): number;
+        getVersion(): string;
+    }
 
     class Touch extends Class {
         getPreviousLocationInView(): Point;
@@ -418,7 +458,40 @@ declare module cc {
 
 
     class GLView {
-        setDesignResolutionSize(width:number, height:number, resolutionPolicy:ResolutionPolicy);
+        constructor();
+
+        // Resolution Policy
+        setDesignResolutionSize(width: number, height: number, resolutionPolicy: number): void;
+        getDesignResolutionSize(): cc.Size;
+        setResolutionPolicy(resolutionPolicy: number): void;
+        getResolutionPolicy(): number;
+
+        // Viewport and Scrolling
+        setViewPortInPoints(x: number, y: number, w: number, h: number): void;
+        getViewportRect(): cc.Rect;
+        setScissorInPoints(x: number, y: number, w: number, h: number): void;
+        isScissorEnabled(): boolean;
+        getScissorRect(): cc.Rect;
+
+        // Screen Size and Scale
+        getFrameSize(): cc.Size;
+        setFrameSize(width: number, height: number): void;
+        resizeWithBrowserSize(enabled: boolean): void;
+
+        // Device Pixel Ratio and Zoom
+        getDevicePixelRatio(): number;
+        setContentScaleFactor(scaleFactor: number): void;
+        getContentScaleFactor(): number;
+
+        // Fullscreen and Orientation
+        enableRetina(enabled: boolean): void;
+        isRetinaEnabled(): boolean;
+        setOrientation(orientation: number): void;
+        getOrientation(): number;
+
+        // Events
+        on(eventName: string, callback: Function, target?: any): void;
+        off(eventName: string, callback: Function, target?: any): void;
     }
 
     class ScrollView extends Layer {
@@ -2825,7 +2898,36 @@ declare module cc {
 
         static create(label:string);
 
-        setString(str:string);
+        constructor(
+            text?: string,
+            fontName?: string,
+            fontSize?: number,
+            dimensions?: cc.Size,
+            hAlignment?: number,
+            vAlignment?: number
+        );
+    
+        // ================================
+        // Methods
+        // ================================
+        
+        // Text Management
+        setString(text: string): void;
+        getString(): string;
+        
+        // Font Management
+        setFontSize(size: number): void;
+        setFontName(fontName: string): void;
+        
+        // Alignment
+        setHorizontalAlignment(align: number): void;
+        setVerticalAlignment(align: number): void;
+        
+        // Text Effects
+        enableStroke(strokeColor: cc.Color, strokeSize: number): void;
+        disableStroke(): void;
+        enableShadow(offsetX: number, offsetY: number, blurRadius: number, color: cc.Color): void;
+        disableShadow(): void;
     }
     export class LabelBMFont extends Sprite {
         setLineBreakWithoutSpace();
