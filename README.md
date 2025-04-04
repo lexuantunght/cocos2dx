@@ -5,9 +5,8 @@
 
 2. To use
 ```
-import { cocos2dx } from 'cocos2dx'
+import { cc } from 'cocos2dx'
 
-const { cc } = cocos2dx;
 const vec2 = new cc.Vec2(0, 0);
 
 ```
