@@ -29,10 +29,11 @@ declare var ccui;
 declare var ccs;
 declare module cc {
     var director: Director;
-    var winSize:cc.Size;
-    var view:GLView;
-    var game:Game;
-    var visibleRect : {
+    var winSize: cc.Size;
+    var view: GLView;
+    var game: Game;
+    var loader: Loader;
+    var visibleRect: {
         topLeft: cc.Point;
         topRight: cc.Point;
         top: cc.Point;
@@ -45,8 +46,7 @@ declare module cc {
         width: number;
         height: number;
     };
-    var game;
-    var KEY : {
+    var KEY: {
         backspace: number;
         tab: number;
         enter: number;
@@ -115,7 +115,7 @@ declare module cc {
         '*': number;
         '+': number;
         '-': number;
-        'numdel': number;
+        numdel: number;
         '/': number;
         f1: number; //f1-f12 dont work on ie
         f2: number;
@@ -148,29 +148,29 @@ declare module cc {
         closebracket: number;
         backslash: number;
         quote: number;
-        space: number
-    }
-    var SCROLLVIEW_DIRECTION_NONE : number;
-    var SCROLLVIEW_DIRECTION_HORIZONTAL : number;
-    var SCROLLVIEW_DIRECTION_VERTICAL : number;
-    var SCROLLVIEW_DIRECTION_BOTH : number;
-    var TABLEVIEW_FILL_TOPDOWN : number;
-    var TABLEVIEW_FILL_BOTTOMUP : number;
+        space: number;
+    };
+    var SCROLLVIEW_DIRECTION_NONE: number;
+    var SCROLLVIEW_DIRECTION_HORIZONTAL: number;
+    var SCROLLVIEW_DIRECTION_VERTICAL: number;
+    var SCROLLVIEW_DIRECTION_BOTH: number;
+    var TABLEVIEW_FILL_TOPDOWN: number;
+    var TABLEVIEW_FILL_BOTTOMUP: number;
 
-    var CONTROL_STATE_NORMAL : number;
-    var CONTROL_STATE_HIGHLIGHTED : number;
-    var CONTROL_STATE_DISABLED : number;
-    var CONTROL_STATE_SELECTED : number;
-    var CONTROL_STATE_INITIAL : number;
+    var CONTROL_STATE_NORMAL: number;
+    var CONTROL_STATE_HIGHLIGHTED: number;
+    var CONTROL_STATE_DISABLED: number;
+    var CONTROL_STATE_SELECTED: number;
+    var CONTROL_STATE_INITIAL: number;
 
-    var _RENDER_TYPE_CANVAS : number;
-    var _RENDER_TYPE_WEBGL : number;
+    var _RENDER_TYPE_CANVAS: number;
+    var _RENDER_TYPE_WEBGL: number;
 
-    var eventManager: EventDispatcher;
+    var eventManager: EventManager;
 
     class Game {
         constructor();
-        
+
         // Game Configurations
         CONFIG_KEY: {
             width: string;
@@ -183,18 +183,46 @@ declare module cc {
             renderMode: string;
             jsList: string;
         };
-    
+
+        // ================================
+        // Rendering Types
+        // ================================
+        readonly RENDER_TYPE_CANVAS: number; // Uses 2D Canvas rendering
+        readonly RENDER_TYPE_WEBGL: number; // Uses WebGL rendering
+        readonly RENDER_TYPE_UNKNOWN: number; // Unknown rendering type
+
+        // ================================
+        // Debug Modes
+        // ================================
+        readonly DEBUG_MODE_NONE: number; // No debug info
+        readonly DEBUG_MODE_INFO: number; // Show basic info
+        readonly DEBUG_MODE_WARN: number; // Show warnings
+        readonly DEBUG_MODE_ERROR: number; // Show only errors
+        readonly DEBUG_MODE_INFO_FOR_WEB_PAGE: number; // Display info in a web page
+        readonly DEBUG_MODE_WARN_FOR_WEB_PAGE: number; // Display warnings in a web page
+        readonly DEBUG_MODE_ERROR_FOR_WEB_PAGE: number; // Display errors in a web page
+
+        // ================================
+        // Game States
+        // ================================
+        readonly EVENT_HIDE: string; // Game is hidden
+        readonly EVENT_SHOW: string; // Game is visible
+
+        readonly STATE_INIT: number; // Game is initializing
+        readonly STATE_CONFIGURED: number; // Game is configured
+        readonly STATE_RUNNING: number; // Game is running
+
         onStart: () => void; // Callback when game starts
         onStop: () => void; // Callback when game stops
-        
+
         // Initialization and Running
         init(config: any): void;
         run(config?: any, onStart?: Function): void;
-        
+
         // Pause and Resume
         pause(): void;
         resume(): void;
-        
+
         // Other Methods
         end(): void;
         restart(): void;
@@ -209,7 +237,7 @@ declare module cc {
 
     class Touch extends Class {
         getPreviousLocationInView(): Point;
-        getLocation() : Point;
+        getLocation(): Point;
         getDelta();
         getStartLocationInView(): Point;
         getStartLocation(): Point;
@@ -233,15 +261,20 @@ declare module cc {
     }
 
     class EventCustom extends Event {
-        constructor(eventName: string);
+        constructor(eventName: string, userData?);
         getEventName(): string;
         setUserData(data);
         getUserData();
     }
 
+    class EventCustomUserData {
+        _eventName: string;
+        _userData: any;
+    }
+
     class EventTouch extends Event {
         static MAX_TOUCHES: number;
-        static EventCode : {BEGAN: number; MOVED: number; ENDED: number; CANCELLED: number};
+        static EventCode: { BEGAN: number; MOVED: number; ENDED: number; CANCELLED: number };
         constructor(arr: Array<cc.Touch>);
         /**
          * Returns event code
@@ -253,52 +286,52 @@ declare module cc {
          * Returns touches of event
          * @returns {Array}
          */
-        getTouches() : Array<cc.Touch>;
+        getTouches(): Array<cc.Touch>;
     }
 
     class EventMouse extends Event {
-        static NONE : number;
-        static DOWN : number;
-        static UP : number;
-        static MOVE : number;
-        static SCROLL : number;
-        static BUTTON_LEFT : number;
-        static BUTTON_RIGHT : number;
-        static BUTTON_MIDDLE : number;
-        static BUTTON_4 : number;
-        static BUTTON_5 : number;
-        static BUTTON_6 : number;
-        static BUTTON_7 : number;
-        static BUTTON_8 : number;
+        static NONE: number;
+        static DOWN: number;
+        static UP: number;
+        static MOVE: number;
+        static SCROLL: number;
+        static BUTTON_LEFT: number;
+        static BUTTON_RIGHT: number;
+        static BUTTON_MIDDLE: number;
+        static BUTTON_4: number;
+        static BUTTON_5: number;
+        static BUTTON_6: number;
+        static BUTTON_7: number;
+        static BUTTON_8: number;
         constructor(eventType: number);
         /**
          * Sets scroll data
          * @param {number} scrollX
          * @param {number} scrollY
          */
-        setScrollData(scrollX:number, scrollY:number);
+        setScrollData(scrollX: number, scrollY: number);
         /**
          * Returns the x axis scroll value
          * @returns {number}
          */
-        getScrollX():number;
+        getScrollX(): number;
         /**
          * Returns the y axis scroll value
          * @returns {number}
          */
-        getScrollY():number;
+        getScrollY(): number;
 
         /**
          * Sets cursor location
          * @param {number} x
          * @param {number} y
          */
-        setLocation(x:number, y:number);
+        setLocation(x: number, y: number);
         /**
          * Returns cursor location
          * @return {cc.Point} location
          */
-        getLocation():cc.Point;
+        getLocation(): cc.Point;
 
         /**
          * Returns the current cursor location in screen coordinates
@@ -315,13 +348,13 @@ declare module cc {
          * Returns the X axis delta distance from the previous location to current location
          * @return {Number}
          */
-        getDeltaX() : number;
+        getDeltaX(): number;
 
         /**
          * Returns the Y axis delta distance from the previous location to current location
          * @return {Number}
          */
-        getDeltaY() : number;
+        getDeltaY(): number;
 
         /**
          * Sets mouse button
@@ -346,7 +379,6 @@ declare module cc {
          * @returns {number}
          */
         getLocationY(): number;
-
     }
 
     class EventAcceleration extends Event {
@@ -357,44 +389,43 @@ declare module cc {
         constructor(keyCode: number, isPressed: boolean);
     }
 
-    class EventDispatcher {
-        setEnabled(b: boolean);
-        removeAllListeners();
-        addEventListenerWithSceneGraphPriority();
-        addCustomListener();
-        addEventListenerWithFixedPriority();
-        removeListeners(node: Node);
-        resumeTarget();
-        setPriority();
-        dispatchEvent();
-        pauseTarget();
-        removeCustomListeners();
-        addListener(l: EventListener, nodeOrPriority: any);
-        removeListener(l: EventListener);
-        isEnabled() : boolean;
+    class EventManager {
+        addCustomListener(eventName: string, callback: Function): void;
+        addListener(listener: cc.EventListener | Object, nodeOrPriority?: cc.Node | number): void;
+        dispatchCustomEvent(eventName: string, optionalUserData?): void;
+        dispatchEvent(event: cc.Event): void;
+        isEnabled(): boolean;
+        pauseTarget(node: cc.Node, recursive?: boolean): void;
+        removeAllListeners(): void;
+        removeCustomListeners(customEventName: string): void;
+        removeListener(listener: Function): void;
+        removeListeners(listenerType: number | cc.Node, recursive?: boolean): void;
+        resumeTarget(node: cc.Node, recursive?: boolean): void;
+        setEnabled(enabled: boolean): void;
+        setPriority(listener: Function, fixedPriority: number);
     }
+
     class EventListener extends Class {
-        static UNKNOWN:number;
-        static TOUCH_ONE_BY_ONE:number;
-        static TOUCH_ALL_AT_ONCE:number;
-        static KEYBOARD:number;
-        static MOUSE:number;
-        static ACCELERATION:number;
-        static CUSTOM:number;
-        static create(obj: Object):EventListener;
+        static UNKNOWN: number;
+        static TOUCH_ONE_BY_ONE: number;
+        static TOUCH_ALL_AT_ONCE: number;
+        static KEYBOARD: number;
+        static MOUSE: number;
+        static ACCELERATION: number;
+        static CUSTOM: number;
+        static create(obj: Object): EventListener;
     }
 
     class ClippingNode extends Node {
-        isInverted() : boolean;
+        isInverted(): boolean;
         setInverted(b: boolean);
         setStencil(n: Node);
-        getAlphaThreshold() : number;
+        getAlphaThreshold(): number;
         init(n: Node);
-        getStencil() : Node;
+        getStencil(): Node;
         setAlphaThreshold(a: number);
 
-        static create(n?: Node) : ClippingNode;
-
+        static create(n?: Node): ClippingNode;
     }
 
     class MotionStreak extends Node {
@@ -402,34 +433,42 @@ declare module cc {
         setTexture(t: Texture2D);
         getTexture(): Texture2D;
         tintWithColor(c: Color);
-        setBlendFunc(func: {src:number; dst:number});
-        setStartingPositionInitialized(b:boolean);
-        getBlendFunc(): {src:number; dst:number};
-        isStartingPositionInitialized() : boolean;
+        setBlendFunc(func: { src: number; dst: number });
+        setStartingPositionInitialized(b: boolean);
+        getBlendFunc(): { src: number; dst: number };
+        isStartingPositionInitialized(): boolean;
         isFastMode(): boolean;
-        initWithFade(fade: number, minSeg: number, stroke: number, color: Color, sp:string);
-        initWithFade(fade: number, minSeg: number, stroke: number, color: Color, sp:Texture2D);
+        initWithFade(fade: number, minSeg: number, stroke: number, color: Color, sp: string);
+        initWithFade(fade: number, minSeg: number, stroke: number, color: Color, sp: Texture2D);
         setFastMode(b: boolean);
 
-        static create(fade: number, minSeg: number, stroke: number, color: Color, sp:string);
-        static create(fade: number, minSeg: number, stroke: number, color: Color, sp:Texture2D);
+        static create(fade: number, minSeg: number, stroke: number, color: Color, sp: string);
+        static create(fade: number, minSeg: number, stroke: number, color: Color, sp: Texture2D);
     }
 
     class DrawNode extends Node {
-        drawTriangle(p1: Point,p2: Point,p3: Point,p4: Point);
+        drawTriangle(p1: Point, p2: Point, p3: Point, p4: Point);
         getBlendFunc();
         onDraw();
         clear();
         setBlendFunc();
         init();
-        drawDot(point: Point, radius: number, color?:Color);
+        drawDot(point: Point, radius: number, color?: Color);
         drawQuadBezier();
         drawCubicBezier();
         drawSegment(from: Point, to: Point, radius: number, color?: Color);
-        drawPoly(points: Array<Point>, fillColor: Color, borderWidth: number , borderColor?: Color);
-        drawCircle(center: Point, radius: number, angle: number, segments, drawLineToCenter: boolean, lineWidth?: number , color?:Color);
+        drawPoly(points: Array<Point>, fillColor: Color, borderWidth: number, borderColor?: Color);
+        drawCircle(
+            center: Point,
+            radius: number,
+            angle: number,
+            segments,
+            drawLineToCenter: boolean,
+            lineWidth?: number,
+            color?: Color
+        );
 
-        static create() : DrawNode;
+        static create(): DrawNode;
     }
 
     enum ResolutionPolicy {
@@ -453,9 +492,8 @@ declare module cc {
         // aspect ratios
         FIXED_WIDTH,
 
-        UNKNOWN
+        UNKNOWN,
     }
-
 
     class GLView {
         constructor();
@@ -485,6 +523,7 @@ declare module cc {
 
         // Fullscreen and Orientation
         enableRetina(enabled: boolean): void;
+        adjustViewPort(enabled: boolean): void;
         isRetinaEnabled(): boolean;
         setOrientation(orientation: number): void;
         getOrientation(): number;
@@ -514,7 +553,7 @@ declare module cc {
         isTouchEnabled();
         isBounceable();
         setTouchEnabled(bool: boolean);
-        getContentOffset() : cc.Point;
+        getContentOffset(): cc.Point;
         resume();
         setClippingToBounds();
         setViewSize(size: cc.Size);
@@ -536,7 +575,7 @@ declare module cc {
         scrollViewDidScroll();
         reloadData();
         insertCellAtIndex();
-        cellAtIndex(idx: number) : TableViewCell;
+        cellAtIndex(idx: number): TableViewCell;
         dequeueCell();
         setDelegate(delegate: any);
         setDataSource(dataSource: Object);
@@ -544,22 +583,21 @@ declare module cc {
     }
     class TableViewCell extends Node {
         reset();
-        getIdx() : number;
+        getIdx(): number;
         setIdx(idx: number);
     }
     class BuilderReader {
-        static load(fileName:string, owner?:Object, parentSize?:Size);
+        static load(fileName: string, owner?: Object, parentSize?: Size);
     }
 
-
     class BuilderAnimationManager {
-        getRunningSequenceName():string;
+        getRunningSequenceName(): string;
 
-        runAnimationsForSequenceNamed(seq:string, reset?:boolean);
+        runAnimationsForSequenceNamed(seq: string, reset?: boolean);
 
-        setCompletedAnimationCallback(obj:Object, func:Function);
+        setCompletedAnimationCallback(obj: Object, func: Function);
 
-        getLastCompletedSequenceName():string;
+        getLastCompletedSequenceName(): string;
         moveAnimationsFromNode(fromNode: cc.Node, toNode: cc.Node);
         setAutoPlaySequenceId(id: number);
         getDocumentCallbackNames();
@@ -589,7 +627,7 @@ declare module cc {
         getSequenceDuration(seq: string): number;
         addDocumentCallbackNode();
         runAnimationsForSequenceNamed();
-        getSequenceId(seq: string) : number;
+        getSequenceId(seq: string): number;
         setCallFunc();
         getDocumentCallbackNodes();
         setSequences();
@@ -603,8 +641,8 @@ declare module cc {
         setTexture();
         getOffset();
         setRectInPixels();
-        getTexture() : Texture2D;
-        getRect() : Rect;
+        getTexture(): Texture2D;
+        getRect(): Rect;
         setOffsetInPixels();
         getRectInPixels();
         setOriginalSize();
@@ -617,8 +655,20 @@ declare module cc {
         setRect();
         getOffsetInPixels();
         getOriginalSize();
-        static create(fileName: string, rect: Rect, rotated?: boolean, offset?: Point, originalSize?: Size) : SpriteFrame;
-        static createWithTexture(texture: Texture2D, rect: Rect, rotated?:boolean, offset?: Point, originalSize?:Size) : SpriteFrame;
+        static create(
+            fileName: string,
+            rect: Rect,
+            rotated?: boolean,
+            offset?: Point,
+            originalSize?: Size
+        ): SpriteFrame;
+        static createWithTexture(
+            texture: Texture2D,
+            rect: Rect,
+            rotated?: boolean,
+            offset?: Point,
+            originalSize?: Size
+        ): SpriteFrame;
     }
 
     class Scale9Sprite extends Node {
@@ -645,8 +695,8 @@ declare module cc {
         setInsetRight();
 
         static create(): Scale9Sprite;
-        static createWithSpriteFrameName(name: string) : Scale9Sprite;
-        static createWithSpriteFrame(spFrame: SpriteFrame) : Scale9Sprite;
+        static createWithSpriteFrameName(name: string): Scale9Sprite;
+        static createWithSpriteFrame(spFrame: SpriteFrame): Scale9Sprite;
     }
 
     class Texture2D {
@@ -663,7 +713,7 @@ declare module cc {
         initWithString();
         setMaxT();
         drawInRect();
-        getContentSize() : Size;
+        getContentSize(): Size;
         setAliasTexParameters();
         setAntiAliasTexParameters();
         generateMipmap();
@@ -690,7 +740,7 @@ declare module cc {
         addImageAsync();
         getDescription();
         getCachedTextureInfo();
-        addImage(fileName: string) : Texture2D;
+        addImage(fileName: string): Texture2D;
         unbindImageAsync();
         getTextureForKey();
         removeUnusedTextures();
@@ -698,26 +748,26 @@ declare module cc {
         waitForQuit();
     }
     class CallFunc {
-        static create(func:Function, _this?:Object);
+        static create(func: Function, _this?: Object);
     }
     class EaseExponentialOut {
-        static create(action:Action);
+        static create(action: Action);
     }
     class EaseBackOut {
-        static create(action:Action);
+        static create(action: Action);
     }
     class EaseBackIn {
-        static create(action:Action);
+        static create(action: Action);
     }
 
-    function pSub(p1:Point, p2:Point):Point;
+    function pSub(p1: Point, p2: Point): Point;
 
-    function pAdd(p1:Point, p2:Point):Point;
+    function pAdd(p1: Point, p2: Point): Point;
 
-    function pLerp(p1:Point, p2:Point, alpha:number):Point;
+    function pLerp(p1: Point, p2: Point, alpha: number): Point;
 
-    function pDistanceSQ(p1:Point, p2:Point) : number;
-    function pDistance(p1:Point, p2:Point): number;
+    function pDistanceSQ(p1: Point, p2: Point): number;
+    function pDistance(p1: Point, p2: Point): number;
     function pNeg();
     function pMult(v: Point, r: Number): Point;
     function pMidpoint(): Point;
@@ -732,7 +782,7 @@ declare module cc {
     function pLengthSQ();
     function pLength(v: Point): number;
 
-    var COCOS2D_DEBUG:number;
+    var COCOS2D_DEBUG: number;
 
     class ParticleSystem extends Node {
         getStartSizeVar();
@@ -794,7 +844,7 @@ declare module cc {
         getRotatePerSecond();
         initParticle();
         setEmitterMode();
-        getDuration() : number;
+        getDuration(): number;
         setSourcePosition();
         getEndSpinVar();
         setBlendAdditive();
@@ -814,7 +864,7 @@ declare module cc {
         getEndSize();
         getLife();
         setSpeedVar();
-        setAutoRemoveOnFinish(b:boolean);
+        setAutoRemoveOnFinish(b: boolean);
         setGravity();
         postStep();
         setEmissionRate();
@@ -847,7 +897,7 @@ declare module cc {
         setDisplayFrame(sp: SpriteFrame);
         setTextureWithRect(t: Texture2D, r: Rect);
 
-        static create(dict?:any);
+        static create(dict?: any);
         static createWithTotalParticles(n: number);
     }
 
@@ -858,8 +908,7 @@ declare module cc {
      * @param {object|Array} obj source object
      * @return {Array|object}
      */
-    function clone(obj:any);
-
+    function clone(obj: any);
 
     /**
      * Function added for JS bindings compatibility. Not needed in cocos2d-html5.
@@ -867,27 +916,26 @@ declare module cc {
      * @param {object} jsobj subclass
      * @param {object} klass superclass
      */
-    function associateWithNative(jsobj:any, superclass:any);
+    function associateWithNative(jsobj: any, superclass: any);
 
     /**
      * Is show bebug info on web page
      * @constant
      * @type {Boolean}
      */
-    var IS_SHOW_DEBUG_ON_PAGE:boolean;
+    var IS_SHOW_DEBUG_ON_PAGE: boolean;
 
     function log(...any);
     function error(...any);
     function assert(condition: boolean, ...any);
     function warn(...any);
 
-
     /**
      * Pop out a message box
      * @param {String} message
      * @function
      */
-    function MessageBox(message:string);
+    function MessageBox(message: string);
 
     /**
      * Output Assert message.
@@ -895,7 +943,7 @@ declare module cc {
      * @param {Boolean} cond If cond is false, assert.
      * @param {String} message
      */
-    function Assert(cond:boolean, message:string);
+    function Assert(cond: boolean, message: string);
 
     /**
      * Update Debug setting.
@@ -909,49 +957,49 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var LANGUAGE_ENGLISH:number;
+    var LANGUAGE_ENGLISH: number;
 
     /**
      * Chinese language code
      * @constant
      * @type Number
      */
-    var LANGUAGE_CHINESE:number;
+    var LANGUAGE_CHINESE: number;
 
     /**
      * French language code
      * @constant
      * @type Number
      */
-    var LANGUAGE_FRENCH:number;
+    var LANGUAGE_FRENCH: number;
 
     /**
      * Italian language code
      * @constant
      * @type Number
      */
-    var LANGUAGE_ITALIAN:number;
+    var LANGUAGE_ITALIAN: number;
 
     /**
      * German language code
      * @constant
      * @type Number
      */
-    var LANGUAGE_GERMAN:number;
+    var LANGUAGE_GERMAN: number;
 
     /**
      * Spanish language code
      * @constant
      * @type Number
      */
-    var LANGUAGE_SPANISH:number;
+    var LANGUAGE_SPANISH: number;
 
     /**
      * Russian language code
      * @constant
      * @type Number
      */
-    var LANGUAGE_RUSSIAN:number;
+    var LANGUAGE_RUSSIAN: number;
     //#endregion cocos2d/CCCommon.js
 
     //#region cocos2d/CCDirector.js
@@ -981,20 +1029,20 @@ declare module cc {
      * @extends cc.Class
      */
     export class Director extends Class {
-        getScheduler():Scheduler;
+        getScheduler(): Scheduler;
 
         /**
          * returns a shared instance of the director
          * @function
          * @return {cc.Director}
          */
-        static getInstance():Director;
+        static getInstance(): Director;
 
         /**
          * initializes cc.Director
          * @return {Boolean}
          */
-        init():boolean;
+        init(): boolean;
 
         /**
          *  Draw the scene. This method is called every frame. Don't call it manually.
@@ -1013,13 +1061,13 @@ declare module cc {
          * </p>
          * @return {cc.Size}
          */
-        getWinSize():Size;
+        getWinSize(): Size;
 
         /**
          * Replaces the running scene with a new one. The running scene is terminated. ONLY call it if there is a running scene.
          * @param {cc.Scene} scene
          */
-        replaceScene(scene:Scene);
+        replaceScene(scene: Scene);
 
         /**
          * <p>
@@ -1029,31 +1077,31 @@ declare module cc {
          * </p>
          * @param {cc.Scene} scene
          */
-        runScene(scene:Scene);
+        runScene(scene: Scene);
 
         /**
          * Get the FPS value
          * @return {Number}
          */
-        getAnimationInterval():number;
+        getAnimationInterval(): number;
 
         /**
          * Whether or not to display the FPS on the bottom-left corner
          * @return {Boolean}
          */
-        isDisplayStats():boolean;
+        isDisplayStats(): boolean;
 
         /**
          * Display the FPS on the bottom-left corner
          * @param displayFPS
          */
-        setDisplayStats(displayStats:boolean);
+        setDisplayStats(displayStats: boolean);
 
         /**
          * set Animation Interval
          * @param {Number} value
          */
-        setAnimationInterval(value:number);
+        setAnimationInterval(value: number);
 
         getTextureCache(): TextureCache;
     }
@@ -1083,46 +1131,46 @@ declare module cc {
          * set render context of drawing primitive
          * @param context
          */
-        setRenderContext(context:CanvasRenderingContext2D);
+        setRenderContext(context: CanvasRenderingContext2D);
 
         /**
          * returns render context of drawing primitive
          * @return {CanvasContext}
          */
-        getRenderContext():CanvasRenderingContext2D;
+        getRenderContext(): CanvasRenderingContext2D;
 
         /**
          * Constructor
          * @param {CanvasContext} renderContext
          */
-        constructor(renderContext:CanvasRenderingContext2D);
+        constructor(renderContext: CanvasRenderingContext2D);
 
         /**
          * draws a point given x and y coordinate measured in points
          * @param {cc.Point} point
          */
-        drawPoint(point:Point);
+        drawPoint(point: Point);
 
         /**
          * draws an array of points.
          * @param {Array} points point of array
          * @param {Number} numberOfPoints
          */
-        drawPoints(points:Point[], numberOfPoints:number);
+        drawPoints(points: Point[], numberOfPoints: number);
 
         /**
          * draws a line given the origin and destination point measured in points
          * @param {cc.Point} origin
          * @param {cc.Point} destination
          */
-        drawLine(origin:Point, destination:Point);
+        drawLine(origin: Point, destination: Point);
 
         /**
          * draws a rectangle given the origin and destination point measured in points.
          * @param {cc.Point} origin
          * @param {cc.Point} destination
          */
-        drawRect(origin:Point, destination:Point);
+        drawRect(origin: Point, destination: Point);
 
         /**
          * draws a solid rectangle given the origin and destination point measured in points.
@@ -1130,7 +1178,7 @@ declare module cc {
          * @param {cc.Point} destination
          * @param {cc.Color} color
          */
-        drawSolidRect(origin:Point, destination:Point, color:Color);
+        drawSolidRect(origin: Point, destination: Point, color: Color);
 
         /**
          * draws a poligon given a pointer to cc.Point coordiantes and the number of vertices measured in points.
@@ -1139,7 +1187,7 @@ declare module cc {
          * @param {Boolean} closePolygon The polygon can be closed or open
          * @param {Boolean} fill The polygon can be closed or open and optionally filled with current color
          */
-        drawPoly(vertices:Point[], numOfVertices:number, closePolygon:boolean, fill:boolean);
+        drawPoly(vertices: Point[], numOfVertices: number, closePolygon: boolean, fill: boolean);
 
         /**
          * draws a solid polygon given a pointer to CGPoint coordiantes, the number of vertices measured in points, and a color.
@@ -1147,7 +1195,7 @@ declare module cc {
          * @param {Number} numberOfPoints
          * @param {cc.Color} color
          */
-        drawSolidPoly(poli:Point[], numberOfPoints:number, color:Color);
+        drawSolidPoly(poli: Point[], numberOfPoints: number, color: Color);
 
         /**
          * draws a circle given the center, radius and number of segments.
@@ -1157,7 +1205,13 @@ declare module cc {
          * @param {Number} segments
          * @param {Boolean} drawLineToCenter
          */
-        drawCircle(center:Point, radius:number, angle:number, segments:number, drawLineToCenter:boolean);
+        drawCircle(
+            center: Point,
+            radius: number,
+            angle: number,
+            segments: number,
+            drawLineToCenter: boolean
+        );
 
         /**
          * draws a quad bezier path
@@ -1166,7 +1220,7 @@ declare module cc {
          * @param {cc.Point} destination
          * @param {Number} segments
          */
-        drawQuadBezier(origin:Point, control:Point, destination:Point, segments:number);
+        drawQuadBezier(origin: Point, control: Point, destination: Point, segments: number);
 
         /**
          * draws a cubic bezier path
@@ -1176,14 +1230,20 @@ declare module cc {
          * @param {cc.Point} destination
          * @param {Number} segments
          */
-        drawCubicBezier(origin:Point, control1:Point, control2:Point, destination:Point, segments:number);
+        drawCubicBezier(
+            origin: Point,
+            control1: Point,
+            control2: Point,
+            destination: Point,
+            segments: number
+        );
 
         /**
          * draw a catmull rom line
          * @param {cc.PointArray} points
          * @param {Number} segments
          */
-        drawCatmullRom(points:Point[], segments:number);
+        drawCatmullRom(points: Point[], segments: number);
 
         /**
          * draw a cardinal spline path
@@ -1191,7 +1251,7 @@ declare module cc {
          * @param {Number} tension
          * @param {Number} segments
          */
-        drawCardinalSpline(config:Point[], tension:number, segments:number);
+        drawCardinalSpline(config: Point[], tension: number, segments: number);
 
         // FIXME: Typescript doesn't support abstract classes so we have to put the common
         // methods from DrawingPrimitiveCanvas and DrawingPrimitiveWebGL here for convenience
@@ -1203,7 +1263,7 @@ declare module cc {
          * @param {Number} r blue value (0 to 255)
          * @param {Number} a Alpha value (0 to 255)
          */
-        setDrawColor(r:number, g:number, b:number, a:number);
+        setDrawColor(r: number, g: number, b: number, a: number);
 
         // ENDFIXME
     }
@@ -1213,16 +1273,14 @@ declare module cc {
      * @class
      * @extends cc.DrawingPrimitive
      */
-    export class DrawingPrimitiveCanvas extends DrawingPrimitive {
-    }
+    export class DrawingPrimitiveCanvas extends DrawingPrimitive {}
 
     /**
      * Canvas of DrawingPrimitive implement version
      * @class
      * @extends cc.DrawingPrimitive
      */
-    export class DrawingPrimitiveWebGL extends DrawingPrimitive {
-    }
+    export class DrawingPrimitiveWebGL extends DrawingPrimitive {}
     //#endregion cocos2d/CCDrawingPrimitives.js
 
     //#region cocos2d/CCLoader.js
@@ -1232,7 +1290,59 @@ declare module cc {
      * @extends cc.Scene
      */
     export class Loader extends Class {
-        static preload(resources:any[], selector:() => void, target:Node):Loader;
+        static preload(resources: any[], selector: () => void, target: Node): Loader;
+        load(
+            resources:
+                | string
+                | string[]
+                | {
+                      srcs: string[];
+                      type: string | 'font' | 'image' | 'json' | 'plist';
+                      name?: string;
+                  }
+                | {
+                      src: string;
+                      type: string | 'font' | 'image' | 'json' | 'plist';
+                      name?: string;
+                  }
+                | Array<{
+                      src: string;
+                      type: string | 'font' | 'image' | 'json' | 'plist';
+                      name?: string;
+                  }>,
+            callback?: (error: any, resource: any) => void
+        ): void;
+        // Load a single resource (image, JSON, plist, etc.)
+        load(url: string, callback?: (error: any, resource: any) => void): void;
+
+        // Load multiple resources
+        load(resources: string[], callback?: (errors: any[], resources: any[]) => void): void;
+
+        // Load resources and track progress
+        load(
+            resources: string[],
+            progressCallback?: (completedCount: number, totalCount: number, item: any) => void,
+            completeCallback?: (errors: any[], resources: any[]) => void
+        ): void;
+
+        // Preload resources for use later
+        preload(resources: string[], callback?: (errors: any[], resources: any[]) => void): void;
+
+        // Get a cached resource
+        getRes(url: string): any;
+
+        // Remove a single cached resource
+        release(url: string): void;
+
+        // Remove multiple cached resources
+        release(resources: string[]): void;
+
+        // Remove all cached resources
+        releaseAll(): void;
+
+        loadTxt(url: string, callback?: (error: any, resource: any) => void): void;
+        loadJson(url: string, callback?: (error: any, resource: any) => void): void;
+        loadImg(url: string, option?: any, callback?: (error: any, resource: any) => void): void;
     }
 
     /**
@@ -1241,7 +1351,7 @@ declare module cc {
      * @extends cc.Scene
      */
     export class LoaderScene extends Scene {
-        static preload(resources:any[], selector:() => void, target:Node):LoaderScene;
+        static preload(resources: any[], selector: () => void, target: Node): LoaderScene;
     }
     //#endregion cocos2d/CCLoader.js
 
@@ -1278,7 +1388,7 @@ declare module cc {
      * @extends cc.Class
      */
     export class Action extends Class {
-        clone():Action;
+        clone(): Action;
         startWithTarget(target: cc.Node);
         setOriginalTarget(target: cc.Node);
         getOriginalTarget(): cc.Node;
@@ -1303,8 +1413,7 @@ declare module cc {
      * @class
      * @extends cc.Action
      */
-    export class FiniteTimeAction extends Action {
-    }
+    export class FiniteTimeAction extends Action {}
     //#endregion cocos2d/actions/CCAction.js
 
     //#region cocos2d/actions/CCActionInterval.js
@@ -1327,8 +1436,7 @@ declare module cc {
      * // example
      * var pingPongAction = cc.Sequence.create(action, action.reverse());
      */
-    export class ActionInterval extends FiniteTimeAction {
-    }
+    export class ActionInterval extends FiniteTimeAction {}
 
     /** Runs actions sequentially, one after another
      * @class
@@ -1346,7 +1454,7 @@ declare module cc {
          * // create sequence with array
          * var seq = cc.Sequence.create(actArray);
          */
-        static create(...rest:FiniteTimeAction[]):Sequence;
+        static create(...rest: FiniteTimeAction[]): Sequence;
     }
 
     /** Repeats an action a number of times.
@@ -1363,7 +1471,7 @@ declare module cc {
          * // example
          * var rep = cc.Repeat.create(cc.Sequence.create(jump2, jump1), 5);
          */
-        static create(action:FiniteTimeAction, times:number):Repeat;
+        static create(action: FiniteTimeAction, times: number): Repeat;
     }
 
     /**  Repeats an action for ever.  <br/>
@@ -1381,7 +1489,7 @@ declare module cc {
          * // example
          * var repeat = cc.RepeatForever.create(cc.RotateBy.create(1.0, 360));
          */
-        static create(action:FiniteTimeAction):RepeatForever;
+        static create(action: FiniteTimeAction): RepeatForever;
     }
 
     /** Spawn a new action immediately
@@ -1396,7 +1504,7 @@ declare module cc {
          * // example
          * var action = cc.Spawn.create(cc.JumpBy.create(2, cc.p(300, 0), 50, 4), cc.RotateBy.create(2, 720));
          */
-        static create(...rest:FiniteTimeAction[]):Spawn;
+        static create(...rest: FiniteTimeAction[]): Spawn;
     }
 
     /** Rotates a cc.Node object to a certain angle by modifying it's
@@ -1416,7 +1524,7 @@ declare module cc {
          * // example
          * var rotateTo = cc.RotateTo.create(2, 61.0);
          */
-        static create(duration:number, deltaAngleX:number, deltaAngleY?:number):RotateTo;
+        static create(duration: number, deltaAngleX: number, deltaAngleY?: number): RotateTo;
     }
 
     /** Rotates a cc.Node object clockwise a number of degrees by modifying it's rotation attribute.
@@ -1433,9 +1541,9 @@ declare module cc {
          * // example
          * var actionBy = cc.RotateBy.create(2, 360);
          */
-        static create(duration:number, deltaAngleX:number, deltaAngleY:number):RotateBy;
+        static create(duration: number, deltaAngleX: number, deltaAngleY: number): RotateBy;
 
-        static create(duration:number, angle:number):RotateBy;
+        static create(duration: number, angle: number): RotateBy;
     }
 
     /** Moves a cc.Node object to the position x,y. x and y are absolute coordinates by modifying it's position attribute.
@@ -1451,7 +1559,7 @@ declare module cc {
          * // example
          * var actionTo = cc.MoveTo.create(2, cc.p(windowSize.width - 40, windowSize.height - 40));
          */
-        static create(duration:number, position:Point):MoveTo;
+        static create(duration: number, position: Point): MoveTo;
     }
 
     /** Moves a cc.Node object x,y pixels by modifying it's position attribute. <br/>
@@ -1468,7 +1576,7 @@ declare module cc {
          * // example
          * var actionBy = cc.MoveBy.create(2, cc.p(80, 80));
          */
-        static create(duration:number, position:Point):MoveBy;
+        static create(duration: number, position: Point): MoveBy;
     }
 
     /** Skews a cc.Node object to given angles by modifying it's skewX and skewY attributes
@@ -1485,7 +1593,7 @@ declare module cc {
          * // example
          * var actionTo = cc.SkewTo.create(2, 37.2, -37.2);
          */
-        static create(t:number, sx:number, sy:number):SkewTo;
+        static create(t: number, sx: number, sy: number): SkewTo;
     }
 
     /** Skews a cc.Node object by skewX and skewY degrees
@@ -1502,7 +1610,7 @@ declare module cc {
          * // example
          * var actionBy = cc.SkewBy.create(2, 0, -90);
          */
-        static create(t:number, sx:number, sy:number):SkewBy;
+        static create(t: number, sx: number, sy: number): SkewBy;
     }
 
     /**  Moves a cc.Node object simulating a parabolic jump movement by modifying it's position attribute.
@@ -1520,7 +1628,7 @@ declare module cc {
          * // example
          * var actionBy = cc.JumpBy.create(2, cc.p(300, 0), 50, 4);
          */
-        static create(duration:number, position:Point, height:number, jumps:number):JumpBy;
+        static create(duration: number, position: Point, height: number, jumps: number): JumpBy;
     }
 
     /**  Moves a cc.Node object to a parabolic position simulating a jump movement by modifying it's position attribute.
@@ -1538,7 +1646,7 @@ declare module cc {
          * // example
          * var actionTo = cc.JumpTo.create(2, cc.p(300, 300), 50, 4);
          */
-        static create(duration:number, position:Point, height:number, jumps:number):JumpTo;
+        static create(duration: number, position: Point, height: number, jumps: number): JumpTo;
     }
 
     /** An action that moves the target with a cubic Bezier curve by a certain distance.
@@ -1556,7 +1664,7 @@ declare module cc {
          * var bezierForward = cc.BezierBy.create(3, bezier);
          *
          */
-        static create(t:number, c:Point[]):BezierBy;
+        static create(t: number, c: Point[]): BezierBy;
     }
 
     /** An action that moves the target with a cubic Bezier curve to a destination point.
@@ -1573,8 +1681,7 @@ declare module cc {
          * var bezier = [cc.p(0, windowSize.height / 2), cc.p(300, -windowSize.height / 2), cc.p(300, 100)];
          * var bezierTo = cc.BezierTo.create(2, bezier);
          */
-        static create(t:number, c:Point[]):BezierTo;
-
+        static create(t: number, c: Point[]): BezierTo;
     }
 
     /** Scales a cc.Node object to a zoom factor by modifying it's scale attribute.
@@ -1596,7 +1703,7 @@ declare module cc {
          * // It scales to 0.5 in x and 2 in Y
          * var actionTo = cc.ScaleTo.create(2, 0.5, 2);
          */
-        static create(duration:number, sx:number, sy?:number):ScaleTo;
+        static create(duration: number, sx: number, sy?: number): ScaleTo;
     }
 
     /** Scales a cc.Node object a zoom factor by modifying it's scale attribute.
@@ -1616,7 +1723,7 @@ declare module cc {
          * //example with sy, it scales by 0.25 in X and 4.5 in Y
          * var actionBy2 = cc.ScaleBy.create(2, 0.25, 4.5);
          */
-        static create(duration:number, sx:number, sy?:number):ScaleBy;
+        static create(duration: number, sx: number, sy?: number): ScaleBy;
     }
 
     /** Blinks a cc.Node object by modifying it's visible attribute
@@ -1632,7 +1739,7 @@ declare module cc {
          * // example
          * var action = cc.Blink.create(2, 10);
          */
-        static create(duration:number, blinks:number):Blink;
+        static create(duration: number, blinks: number): Blink;
     }
 
     /** Fades In an object that implements the cc.RGBAProtocol protocol. It modifies the opacity from 0 to 255.<br/>
@@ -1648,7 +1755,7 @@ declare module cc {
          * //example
          * var action = cc.FadeIn.create(1.0);
          */
-        static create(duration:number):FadeIn;
+        static create(duration: number): FadeIn;
     }
 
     /** Fades Out an object that implements the cc.RGBAProtocol protocol. It modifies the opacity from 255 to 0.
@@ -1664,7 +1771,7 @@ declare module cc {
          * // example
          * var action = cc.FadeOut.create(1.0);
          */
-        static create(d:number):FadeOut;
+        static create(d: number): FadeOut;
     }
 
     /** Fades an object that implements the cc.RGBAProtocol protocol. It modifies the opacity from the current value to a custom one.
@@ -1681,7 +1788,7 @@ declare module cc {
          * // example
          * var action = cc.FadeTo.create(1.0, 0);
          */
-        static create(duration:number, opacity:number):FadeTo;
+        static create(duration: number, opacity: number): FadeTo;
     }
 
     /** Tints a cc.Node that implements the cc.NodeRGB protocol from current tint to a custom one.
@@ -1700,7 +1807,7 @@ declare module cc {
          * // example
          * var action = cc.TintTo.create(2, 255, 0, 255);
          */
-        static create(duration:number, red:number, green:number, blue:number):TintTo;
+        static create(duration: number, red: number, green: number, blue: number): TintTo;
     }
 
     /**  Tints a cc.Node that implements the cc.NodeRGB protocol from current tint to a custom one.
@@ -1718,7 +1825,12 @@ declare module cc {
          * // example
          * var action = cc.TintBy.create(2, -127, -255, -127);
          */
-        static create(duration:number, deltaRed:number, deltaGreen:number, deltaBlue:number):TintBy;
+        static create(
+            duration: number,
+            deltaRed: number,
+            deltaGreen: number,
+            deltaBlue: number
+        ): TintBy;
     }
 
     /** Delays the action a certain amount of seconds
@@ -1733,7 +1845,7 @@ declare module cc {
          * // example
          * var delay = cc.DelayTime.create(1);
          */
-        static create(d:number):DelayTime;
+        static create(d: number): DelayTime;
     }
 
     /**
@@ -1753,7 +1865,7 @@ declare module cc {
          * // example
          *  var reverse = cc.ReverseTime.create(this);
          */
-        static create(action:FiniteTimeAction):ReverseTime;
+        static create(action: FiniteTimeAction): ReverseTime;
     }
 
     /**  Animates a sprite given the name of an Animation
@@ -1770,7 +1882,7 @@ declare module cc {
          * // create the animation with animation
          * var anim = cc.Animate.create(dance_grey);
          */
-        static create(animation:Animation):Animate;
+        static create(animation: Animation): Animate;
     }
     //#endregion cocos2d/actions/CCActionInterval.js
 
@@ -1781,8 +1893,8 @@ declare module cc {
         removeAllActions();
         addAction();
         resumeTarget();
-        update(dt:number);
-        getNumberOfRunningActionsInTarget(target : cc.Node);
+        update(dt: number);
+        getNumberOfRunningActionsInTarget(target: cc.Node);
         removeAllActionsFromTarget();
         resumeTargets();
         removeAction();
@@ -1798,8 +1910,7 @@ declare module cc {
      * @class
      * @extends cc.ActionInterval
      */
-    export class TargetedAction extends ActionInterval {
-    }
+    export class TargetedAction extends ActionInterval {}
     //#endregion cocos2d/actions/CCActionManager.js
 
     //#region cocos2d/base_nodes/CCNode.js
@@ -1865,40 +1976,40 @@ declare module cc {
      * };
      */
     export class Node extends Class {
-        x:number;
-        y:number;
-        width:number;
-        height:number;
-        anchorX:number;
-        anchorY:number;
-        skewX:number;
-        skewY:number;
-        zIndex:number;
-        vertexZ:number;
-        rotation:number;
-        rotationX:number;
-        rotationY:number;
-        scale:number;
-        scaleX:number;
-        scaleY:number;
-        children:Array<Node>;
-        childrenCount:number;
-        parent:Node;
-        visible:boolean;
-        running:boolean;
-        ignoreAnchor:boolean;
-        actionManager:ActionManager;
-        scheduler:Scheduler;
-        shaderProgram:any;
-        glServerState:any;
-        tag:number;
-        userData:any;
-        userObject:any;
-        arrivalOrder:number;
-        animationManager:BuilderAnimationManager;
-        controller:any;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        anchorX: number;
+        anchorY: number;
+        skewX: number;
+        skewY: number;
+        zIndex: number;
+        vertexZ: number;
+        rotation: number;
+        rotationX: number;
+        rotationY: number;
+        scale: number;
+        scaleX: number;
+        scaleY: number;
+        children: Array<Node>;
+        childrenCount: number;
+        parent: Node;
+        visible: boolean;
+        running: boolean;
+        ignoreAnchor: boolean;
+        actionManager: ActionManager;
+        scheduler: Scheduler;
+        shaderProgram: any;
+        glServerState: any;
+        tag: number;
+        userData: any;
+        userObject: any;
+        arrivalOrder: number;
+        animationManager: BuilderAnimationManager;
+        controller: any;
 
-        attr(props:Object);
+        attr(props: Object);
         getColor(): Color;
         setColor(color: Color);
 
@@ -1906,10 +2017,10 @@ declare module cc {
          * @deprecated
          * @param order
          */
-        setZOrder(order:number);
+        setZOrder(order: number);
 
-        setLocalZOrder(order:number);
-        setGlobalZOrder(order:number);
+        setLocalZOrder(order: number);
+        setGlobalZOrder(order: number);
 
         /**
          * set the dirty node
@@ -1925,13 +2036,13 @@ declare module cc {
          *  </p>
          * @return {Number}
          */
-        getSkewX():number;
+        getSkewX(): number;
 
         /**
          * set the skew degrees in X
          * @param {Number} newSkewX
          */
-        setSkewX(newSkewX:number);
+        setSkewX(newSkewX: number);
 
         /**
          * <p>get the skew degrees in Y               <br/>
@@ -1942,43 +2053,43 @@ declare module cc {
          * </p>
          * @return {Number}
          */
-        getSkewY():number;
+        getSkewY(): number;
 
         /**
          * set the skew degrees in Y
          * @param {Number} newSkewY
          */
-        setSkewY(newSkewY:number);
+        setSkewY(newSkewY: number);
 
         /**
          * zOrder getter
          * @return {Number}
          */
-        getZOrder():number;
+        getZOrder(): number;
 
         /**
          * ertexZ getter
          * @return {Number}
          */
-        getVertexZ():number;
+        getVertexZ(): number;
 
         /**
          * vertexZ setter
          * @param {Number} Var
          */
-        setVertexZ(Var:number);
+        setVertexZ(Var: number);
 
         /**
          * The rotation (angle) of the node in degrees. 0 is the default rotation angle. Positive values rotate node CW.
          * @return {Number}
          */
-        getRotation():number;
+        getRotation(): number;
 
         /**
          * rotation setter
          * @param {Number} newRotation
          */
-        setRotation(newRotation:number);
+        setRotation(newRotation: number);
 
         /**
          * The rotation (angle) of the node in degrees. 0 is the default rotation angle. <br/>
@@ -1986,122 +2097,122 @@ declare module cc {
          * (support only in WebGl rendering mode)
          * @return {Number}
          */
-        getRotationX():number;
+        getRotationX(): number;
 
         /**
          * rotationX setter
          * @param {Number} rotationX
          */
-        setRotationX(rotationX:number);
+        setRotationX(rotationX: number);
 
         /**
          * The rotation (angle) of the node in degrees. 0 is the default rotation angle.  <br/>
          * Positive values rotate node CW. It only modifies the Y rotation performing a vertical rotational skew .
          * @return {Number}
          */
-        getRotationY():number;
+        getRotationY(): number;
 
         /**
          * rotationY setter
          * @param {Number} rotationY
          */
-        setRotationY(rotationY:number);
+        setRotationY(rotationY: number);
 
         /** Get the scale factor of the node.
          * @warning: Assert when _scaleX != _scaleY.
          * @return {Number}
          */
-        getScale():number;
+        getScale(): number;
 
         /**
          * The scale factor of the node. 1.0 is the default scale factor. It modifies the X and Y scale at the same time.
          * @param {Number} scale or scaleX value
          * @param {Number} scaleY
          */
-        setScale(scale:number);
+        setScale(scale: number);
 
-        setScale(scaleX:number, scaleY:number);
+        setScale(scaleX: number, scaleY: number);
 
         /**
          * scaleX getter
          * @return {Number}
          */
-        getScaleX():number;
+        getScaleX(): number;
 
         /**
          * scaleX setter
          * @param {Number} newScaleX
          */
-        setScaleX(newScaleX:number);
+        setScaleX(newScaleX: number);
 
         /**
          * scaleY getter
          * @return {Number}
          */
-        getScaleY():number;
+        getScaleY(): number;
 
         /**
          * scaleY setter
          * @param {Number} newScaleY
          */
-        setScaleY(newScaleY:number);
+        setScaleY(newScaleY: number);
 
         /**
          * position setter
          * @param {cc.Point|Number} newPosOrxValue
          * @param {Number}  yValue
          */
-        setPosition(newPosOrxValue:any, yValue?:number);
+        setPosition(newPosOrxValue: any, yValue?: number);
 
         /**
          * <p>Position (x,y) of the node in OpenGL coordinates. (0,0) is the left-bottom corner. </p>
          * @return {cc.Point}
          */
-        getPosition():Point;
+        getPosition(): Point;
 
         /**
          * @return {Number}
          */
-        getPositionX():number;
+        getPositionX(): number;
 
         /**
          * @param {Number} x
          */
-        setPositionX(x:number);
+        setPositionX(x: number);
 
         /**
          * @return {Number}
          */
-        getPositionY():number;
+        getPositionY(): number;
 
         /**
          * @param {Number} y
          */
-        setPositionY(y:number);
+        setPositionY(y: number);
 
         /**
          * Get children count
          * @return {Number}
          */
-        getChildrenCount():number;
+        getChildrenCount(): number;
 
         /**
          * children getter
          * @return {object}
          */
-        getChildren():Array<Node>;
+        getChildren(): Array<Node>;
 
         /**
          * isVisible getter
          * @return {Boolean}
          */
-        isVisible():boolean;
+        isVisible(): boolean;
 
         /**
          * isVisible setter
          * @param {Boolean} Var
          */
-        setVisible(Var:boolean);
+        setVisible(Var: boolean);
 
         /**
          *  <p>anchorPoint is the point around which all transformations and positioning manipulations take place.<br/>
@@ -2111,124 +2222,124 @@ declare module cc {
          *  The default anchorPoint is (0.5,0.5), so it starts in the center of the node. <br/></p>
          * @return {cc.Point}
          */
-        getAnchorPoint():Point;
+        getAnchorPoint(): Point;
 
         /**
          * @param {cc.Point} point
          */
-        setAnchorPoint(point:Point);
+        setAnchorPoint(point: Point);
 
-        setAnchorPoint(x:number, y:number);
+        setAnchorPoint(x: number, y: number);
 
         /**
          *  The anchorPoint in absolute pixels.  <br/>
          *  you can only read it. If you wish to modify it, use anchorPoint instead
          * @return {cc.Point}
          */
-        getAnchorPointInPoints():Point;
+        getAnchorPointInPoints(): Point;
 
         /** <p>The untransformed size of the node. <br/>
          The contentSize remains the same no matter the node is scaled or rotated.<br/>
          All nodes has a size. Layer and Scene has the same size of the screen. <br/></p>
          * @return {cc.Size}
          */
-        getContentSize():Size;
+        getContentSize(): Size;
 
         /**
          * @param {cc.Size} size
          */
-        setContentSize(size:Size);
+        setContentSize(size: Size);
 
-        setContentSize(width:number, height:number);
+        setContentSize(width: number, height: number);
 
         /**
          * whether or not the node is running
          * @return {Boolean}
          */
-        isRunning():boolean;
+        isRunning(): boolean;
 
         /** A weak reference to the parent
          * @return {cc.Node}
          */
-        getParent():Node;
+        getParent(): Node;
 
         /** parent setter
          * @param {cc.Node} Var
          */
-        setParent(Var:Node);
+        setParent(Var: Node);
 
         /**
          * If true, the Anchor Point will be (0,0) when you position the CCNode.<br/>
          * Used by CCLayer and CCScene
          * @return {Boolean}
          */
-        isIgnoreAnchorPointForPosition():boolean;
+        isIgnoreAnchorPointForPosition(): boolean;
 
         /**
          * ignoreAnchorPointForPosition setter
          * @param {Boolean} newValue
          */
-        ignoreAnchorPointForPosition(newValue:boolean);
+        ignoreAnchorPointForPosition(newValue: boolean);
 
         /**
          * A tag used to identify the node easily
          * @return {Number}
          */
-        getTag():number;
+        getTag(): number;
 
         /** tag setter
          * @param {Number} Var
          */
-        setTag(Var:number);
+        setTag(Var: number);
 
         /**
          * A custom user data pointer
          * @return {object}
          */
-        getUserData():any;
+        getUserData(): any;
 
         /**
          * @param {object} Var
          */
-        setUserData(Var:any);
+        setUserData(Var: any);
 
         /**
          * Similar to userData, but instead of holding a void* it holds an id
          * @return {object}
          */
-        getUserObject():any;
+        getUserObject(): any;
 
         /**
          * Similar to userData, but instead of holding a void* it holds an id
          * @param {object} newValue
          */
-        setUserObject(newValue:any);
+        setUserObject(newValue: any);
 
         /**
          * used internally for zOrder sorting, don't change this manually
          * @return {Number}
          */
-        getOrderOfArrival():number;
+        getOrderOfArrival(): number;
 
         /**
          * used internally for zOrder sorting, don't change this manually
          * @param {Number} Var
          */
-        setOrderOfArrival(Var:number);
+        setOrderOfArrival(Var: number);
 
         /**
          * <p>cc.ActionManager used by all the actions. <br/>
          * (IMPORTANT: If you set a new cc.ActionManager, then previously created actions are going to be removed.)</p>
          * @return {cc.ActionManager}
          */
-        getActionManager():ActionManager;
+        getActionManager(): ActionManager;
 
         /**
          * <p>cc.ActionManager used by all the actions. <br/>
          * (IMPORTANT: If you set a new cc.ActionManager, then previously created actions are going to be removed.)</p>
          * @param {cc.ActionManager} actionManager
          */
-        setActionManager(actionManager:ActionManager);
+        setActionManager(actionManager: ActionManager);
 
         /**
          * <p>
@@ -2237,7 +2348,7 @@ declare module cc {
          * </p>
          * @return {cc.Scheduler}
          */
-        getScheduler():Scheduler;
+        getScheduler(): Scheduler;
 
         /**
          * <p>
@@ -2245,13 +2356,13 @@ declare module cc {
          *   IMPORTANT: If you set a new cc.Scheduler, then previously created timers/update are going to be removed.
          * </p>
          */
-        setScheduler(scheduler:Scheduler);
+        setScheduler(scheduler: Scheduler);
 
         /** returns a "local" axis aligned bounding box of the node. <br/>
          * The returned box is relative only to its parent.
          * @return {cc.Rect}
          */
-        getBoundingBox():Rect;
+        getBoundingBox(): Rect;
 
         /**
          * Stops all running actions and schedulers
@@ -2261,7 +2372,7 @@ declare module cc {
         /** Node description
          * @return {String}
          */
-        description():string;
+        description(): string;
 
         // composition: GET
         /**
@@ -2269,7 +2380,7 @@ declare module cc {
          * @param {Number} aTag
          * @return {cc.Node}
          */
-        getChildByTag(aTag:number):Node;
+        getChildByTag(aTag: number): Node;
 
         // composition: ADD
         /** <p>"add" logic MUST only be on this method <br/> </p>
@@ -2281,7 +2392,7 @@ declare module cc {
          * @param {Number} zOrder
          * @param {Number} tag
          */
-        addChild(child:Node, zOrder?:number, tag?:number);
+        addChild(child: Node, zOrder?: number, tag?: number);
 
         // composition: REMOVE
         /**
@@ -2290,14 +2401,14 @@ declare module cc {
          * If the node orphan, then nothing happens.
          * @param {Boolean} cleanup
          */
-        removeFromParent(cleanup?:boolean);
+        removeFromParent(cleanup?: boolean);
 
         /**
          * Remove itself from its parent node.
          * @deprecated
          * @param {Boolean} cleanup
          */
-        removeFromParentAndCleanup(cleanup:boolean);
+        removeFromParentAndCleanup(cleanup: boolean);
 
         /** <p>Removes a child from the container. It will also cleanup all running actions depending on the cleanup parameter. </p>
          * If the cleanup parameter is not passed, it will force a cleanup. <br/>
@@ -2308,7 +2419,7 @@ declare module cc {
          * @param {cc.Node} child
          * @param {Boolean} cleanup
          */
-        removeChild(child:Node, cleanup:boolean);
+        removeChild(child: Node, cleanup: boolean);
 
         /**
          * Removes a child from the container by tag value. It will also cleanup all running actions depending on the cleanup parameter.
@@ -2316,7 +2427,7 @@ declare module cc {
          * @param {Number} tag
          * @param {Boolean} cleanup
          */
-        removeChildByTag(tag:number, cleanup:boolean);
+        removeChildByTag(tag: number, cleanup: boolean);
 
         /**
          * Removes all children from the container and do a cleanup all running actions depending on the cleanup parameter.
@@ -2330,14 +2441,14 @@ declare module cc {
          * If the cleanup parameter is not passed, it will force a cleanup. <br/>
          * @param {Boolean | null } cleanup
          */
-        removeAllChildren(cleanup:boolean);
+        removeAllChildren(cleanup: boolean);
 
         /** Reorders a child according to a new z value. <br/>
          * The child MUST be already added.
          * @param {cc.Node} child
          * @param {Number} zOrder
          */
-        reorderChild(child:Node, zOrder:number);
+        reorderChild(child: Node, zOrder: number);
 
         /**
          * <p>performance improvement, Sort the children array once before drawing, instead of every time when a child is added or reordered <br/>
@@ -2358,7 +2469,7 @@ declare module cc {
          <p>But if you enable any other GL state, you should disable it after drawing your node. </p>
          * @param {CanvasContext} ctx
          */
-        draw(ctx:CanvasRenderingContext2D);
+        draw(ctx: CanvasRenderingContext2D);
 
         /** performs OpenGL view-matrix transformation of it's ancestors.<br/>
          * Generally the ancestors are already transformed, but in certain cases (eg: attaching a FBO) <br/>
@@ -2401,7 +2512,7 @@ declare module cc {
          * @param {cc.Action} action
          * @return {cc.Action}
          */
-        runAction(action:Action);
+        runAction(action: Action);
 
         /**
          * Removes all actions from the running action list
@@ -2412,20 +2523,20 @@ declare module cc {
          * Removes an action from the running action list
          * @param {cc.Action} action
          */
-        stopAction(action:Action);
+        stopAction(action: Action);
 
         /**
          * Removes an action from the running action list given its tag
          * @param {Number} tag
          */
-        stopActionByTag(tag:number);
+        stopActionByTag(tag: number);
 
         /**
          * Gets an action from the running action list given its tag
          * @param {Number} tag
          * @return {cc.Action}
          */
-        getActionByTag(tag:number):Action;
+        getActionByTag(tag: number): Action;
 
         /** Returns the numbers of actions that are running plus the ones that are schedule to run (actions in actionsToAdd and actions arrays).<br/>
          *    Composable actions are counted as 1 action. Example:<br/>
@@ -2433,7 +2544,7 @@ declare module cc {
          *    If you are running 7 Sequences of 2 actions, it will return 7.
          * @return {Number}
          */
-        numberOfRunningActions():number;
+        numberOfRunningActions(): number;
 
         // cc.Node - Callbacks
         // timers
@@ -2450,7 +2561,7 @@ declare module cc {
          * Only one "update" callback function could be scheduled per node (You can't have 2 'update' callback functions).<br/>
          * @param {Number} priority
          */
-        scheduleUpdateWithPriority(priority:number);
+        scheduleUpdateWithPriority(priority: number);
 
         /**
          * unschedules the "update" method.
@@ -2462,7 +2573,12 @@ declare module cc {
          * @param {function} callback_fn
          * @param {Number} interval
          */
-        schedule(callback_fn:(dt:number) => void, interval?:number, repeat?:boolean, delay?:number);
+        schedule(
+            callback_fn: (dt: number) => void,
+            interval?: number,
+            repeat?: boolean,
+            delay?: number
+        );
 
         /**
          * NOTE: this is no implemented in cocos2d-js public repository.
@@ -2476,13 +2592,13 @@ declare module cc {
          * @param {cc.Class} callback_fn
          * @param {Number} delay
          */
-        scheduleOnce(callback_fn:(dt?:number) => void, delay:number);
+        scheduleOnce(callback_fn: (dt?: number) => void, delay: number);
 
         /**
          * unschedules a custom callback function.
          * @param {function} callback_fn
          */
-        unschedule(callback_fn:(dt?:number) => void);
+        unschedule(callback_fn: (dt?: number) => void);
 
         /**
          * unschedule all scheduled callback functions: custom callback functions, and the 'update' callback function.<br/>
@@ -2548,40 +2664,40 @@ declare module cc {
          * spriteB.setAdditionalTransform(t);<br/>
          </p>
          */
-        setAdditionalTransform(additionalTransform:AffineTransform);
+        setAdditionalTransform(additionalTransform: AffineTransform);
 
         /**
          * Returns the matrix that transform parent's space coordinates to the node's (local) space coordinates.<br/>
          * The matrix is in Pixels.
          * @return {Number}
          */
-        parentToNodeTransform():AffineTransform;
+        parentToNodeTransform(): AffineTransform;
 
         /**
          *  Retrusn the world affine transform matrix. The matrix is in Pixels.
          * @return {cc.AffineTransform}
          */
-        nodeToWorldTransform():AffineTransform;
+        nodeToWorldTransform(): AffineTransform;
 
         /**
          * Returns the inverse world affine transform matrix. The matrix is in Pixels.
          * @return {cc.AffineTransform}
          */
-        worldToNodeTransform():AffineTransform;
+        worldToNodeTransform(): AffineTransform;
 
         /**
          * Converts a Point to node (local) space coordinates. The result is in Points.
          * @param {cc.Point} worldPoint
          * @return {cc.Point}
          */
-        convertToNodeSpace(worldPoint:Point):Point;
+        convertToNodeSpace(worldPoint: Point): Point;
 
         /**
          * Converts a Point to world space coordinates. The result is in Points.
          * @param {cc.Point} nodePoint
          * @return {cc.Point}
          */
-        convertToWorldSpace(nodePoint:Point):Point;
+        convertToWorldSpace(nodePoint: Point): Point;
 
         /**
          * Converts a Point to node (local) space coordinates. The result is in Points.<br/>
@@ -2589,7 +2705,7 @@ declare module cc {
          * @param {cc.Point} worldPoint
          * @return {cc.Point}
          */
-        convertToNodeSpaceAR(worldPoint:Point):Point;
+        convertToNodeSpaceAR(worldPoint: Point): Point;
 
         /**
          * Converts a local Point to world space coordinates.The result is in Points.<br/>
@@ -2597,27 +2713,27 @@ declare module cc {
          * @param {cc.Point} nodePoint
          * @return {cc.Point}
          */
-        convertToWorldSpaceAR(nodePoint:Point):Point;
+        convertToWorldSpaceAR(nodePoint: Point): Point;
 
         /** convenience methods which take a cc.Touch instead of cc.Point
          * @param {cc.Touch} touch
          * @return {cc.Point}
          */
-        convertTouchToNodeSpace(touch:Touch):Point;
+        convertTouchToNodeSpace(touch: Touch): Point;
 
         /**
          * converts a cc.Touch (world coordinates) into a local coordiante. This method is AR (Anchor Relative).
          * @param {cc.Touch}touch
          * @return {cc.Point}
          */
-        convertTouchToNodeSpaceAR(touch:Touch):Point;
+        convertTouchToNodeSpaceAR(touch: Touch): Point;
 
         /**
          * Update will be called automatically every frame if "scheduleUpdate" is called, and the node is "live" <br/>
          * (override me)
          * @param {Number} dt
          */
-        update(dt:number);
+        update(dt: number);
 
         /**
          * updates the quad according the the rotation, position, scale values.
@@ -2646,9 +2762,7 @@ declare module cc {
          * The matrix is in Pixels.
          * @return {cc.AffineTransform}
          */
-        nodeToParentTransform():AffineTransform;
-
-
+        nodeToParentTransform(): AffineTransform;
     }
     //#endregion cocos2d/base_nodes/CCNode.js
 
@@ -2663,14 +2777,14 @@ declare module cc {
      * @param {Number} ty
      */
     export class AffineTransform {
-        a:number;
-        b:number;
-        c:number;
-        d:number;
-        tx:number;
-        ty:number;
+        a: number;
+        b: number;
+        c: number;
+        d: number;
+        tx: number;
+        ty: number;
 
-        constructor(a:number, b:number, c:number, d:number, tx:number, ty:number);
+        constructor(a: number, b: number, c: number, d: number, tx: number, ty: number);
     }
     //#endregion cocos2d/cocoa/CCAffineTranform.js
 
@@ -2682,10 +2796,10 @@ declare module cc {
      * Constructor
      */
     export class Point {
-        x:number;
-        y:number;
+        x: number;
+        y: number;
 
-        constructor(_x:number, _y:number);
+        constructor(_x: number, _y: number);
     }
 
     /**
@@ -2693,17 +2807,16 @@ declare module cc {
      * @param {Number} x
      * @param {Number} y
      */
-    function p(x:number, y:number):Point;
+    function p(x: number, y: number): Point;
 
-
-    function _p(x:number, y:number):Point;
+    function _p(x: number, y: number): Point;
 
     /**
      * The "left bottom" point -- equivalent to cc.p(0, 0).
      * @function
      * @return {cc.Point}
      */
-    function PointZero():Point;
+    function PointZero(): Point;
 
     /**
      * @class
@@ -2712,10 +2825,10 @@ declare module cc {
      * Constructor
      */
     export class Size {
-        width:number;
-        height:number;
+        width: number;
+        height: number;
 
-        constructor(_width:number, _height:number);
+        constructor(_width: number, _height: number);
     }
 
     /**
@@ -2724,7 +2837,7 @@ declare module cc {
      * @param {Number} h height
      * @return {cc.Size}
      */
-    function size(w:number, h:number):cc.Size;
+    function size(w: number, h: number): cc.Size;
 
     /**
      * @class
@@ -2735,13 +2848,13 @@ declare module cc {
      * Constructor
      */
     export class Rect {
-        origin:Point;
-        size:Size;
+        origin: Point;
+        size: Size;
 
-        x:number;
-        y:number;
-        width:number;
-        height:number;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
     }
 
     /**
@@ -2752,17 +2865,17 @@ declare module cc {
      * @param {Number} height
      * @return {cc.Rect}
      */
-    function RectMake(x:number, y:number, width:number, height:number):Rect;
+    function RectMake(x: number, y: number, width: number, height: number): Rect;
 
     // backward compatible
-    function rect(x:number, y:number, w:number, h:number):Rect;
+    function rect(x: number, y: number, w: number, h: number): Rect;
 
     /**
      * The "zero" rectangle -- equivalent to cc.rect(0, 0, 0, 0).
      * @function
      * @return {cc.Rect}
      */
-    function RectZero():Rect;
+    function RectZero(): Rect;
 
     /**
      * @function
@@ -2770,7 +2883,7 @@ declare module cc {
      * @param {cc.Rect} rect2
      * @return {Boolean}
      */
-    function rectEqualToRect(rect1:Rect, rect2:Rect):boolean;
+    function rectEqualToRect(rect1: Rect, rect2: Rect): boolean;
 
     /**
      * @function
@@ -2778,7 +2891,7 @@ declare module cc {
      * @param {cc.Rect} rect2
      * @return {Boolean}
      */
-    function rectContainsRect(rect1:Rect, rect2:Rect):boolean;
+    function rectContainsRect(rect1: Rect, rect2: Rect): boolean;
 
     /**
      * return the rightmost x-value of 'rect'
@@ -2786,7 +2899,7 @@ declare module cc {
      * @param {cc.Rect} rect
      * @return {Number}
      */
-    function rectGetMaxX(rect:Rect):number;
+    function rectGetMaxX(rect: Rect): number;
 
     /**
      * return the midpoint x-value of 'rect'
@@ -2794,7 +2907,7 @@ declare module cc {
      * @param {cc.Rect} rect
      * @return {Number}
      */
-    function rectGetMidX(rect:Rect);
+    function rectGetMidX(rect: Rect);
 
     /**
      * return the leftmost x-value of 'rect'
@@ -2802,7 +2915,7 @@ declare module cc {
      * @param {cc.Rect} rect
      * @return {Number}
      */
-    function rectGetMinX(rect:Rect);
+    function rectGetMinX(rect: Rect);
 
     /**
      * Return the topmost y-value of `rect'
@@ -2810,7 +2923,7 @@ declare module cc {
      * @param {cc.Rect} rect
      * @return {Number}
      */
-    function rectGetMaxY(rect:Rect):number;
+    function rectGetMaxY(rect: Rect): number;
 
     /**
      * Return the midpoint y-value of `rect'
@@ -2818,7 +2931,7 @@ declare module cc {
      * @param {cc.Rect} rect
      * @return {Number}
      */
-    function rectGetMidY(rect:Rect):number;
+    function rectGetMidY(rect: Rect): number;
 
     /**
      * Return the bottommost y-value of `rect'
@@ -2826,7 +2939,7 @@ declare module cc {
      * @param {cc.Rect} rect
      * @return {Number}
      */
-    function rectGetMinY(rect):number;
+    function rectGetMinY(rect): number;
 
     /**
      * @function
@@ -2834,7 +2947,7 @@ declare module cc {
      * @param {cc.Point} point
      * @return {Boolean}
      */
-    function rectContainsPoint(rect:Rect, point:Point) : boolean;
+    function rectContainsPoint(rect: Rect, point: Point): boolean;
 
     /**
      * @function
@@ -2842,7 +2955,7 @@ declare module cc {
      * @param {cc.Rect} rectB
      * @return {Boolean}
      */
-    function rectIntersectsRect(rectA:Rect, rectB:Rect):boolean;
+    function rectIntersectsRect(rectA: Rect, rectB: Rect): boolean;
 
     /**
      * @function
@@ -2850,7 +2963,7 @@ declare module cc {
      * @param {cc.Rect} rectB
      * @return {Boolean}
      */
-    function rectOverlapsRect(rectA:Rect, rectB:Rect):boolean;
+    function rectOverlapsRect(rectA: Rect, rectB: Rect): boolean;
 
     /**
      * Returns the smallest rectangle that contains the two source rectangles.
@@ -2859,7 +2972,7 @@ declare module cc {
      * @param {cc.Rect} rectB
      * @return {cc.Rect}
      */
-    function rectUnion(rectA:Rect, rectB:Rect):Rect;
+    function rectUnion(rectA: Rect, rectB: Rect): Rect;
 
     /**
      * Returns the overlapping portion of 2 rectangles
@@ -2868,7 +2981,7 @@ declare module cc {
      * @param {cc.Rect} rectB
      * @return {cc.Rect}
      */
-    function rectIntersection(rectA:Rect, rectB:Rect):Rect;
+    function rectIntersection(rectA: Rect, rectB: Rect): Rect;
 
     //#endregion cocos2d/cocoa/CCGeometry.js
 
@@ -2894,9 +3007,15 @@ declare module cc {
          * // Example
          * var myLabel = cc.LabelTTF.create('label text',  'Times New Roman', 32, cc.size(32,16), cc.TEXT_ALIGNMENT_LEFT);
          */
-        static create(label:string, fontName?:string, fontSize?:number, dimensions?:Size, alignment?:number):LabelTTF;
+        static create(
+            label: string,
+            fontName?: string,
+            fontSize?: number,
+            dimensions?: Size,
+            alignment?: number
+        ): LabelTTF;
 
-        static create(label:string);
+        static create(label: string);
 
         constructor(
             text?: string,
@@ -2906,39 +3025,40 @@ declare module cc {
             hAlignment?: number,
             vAlignment?: number
         );
-    
+
         // ================================
         // Methods
         // ================================
-        
+
         // Text Management
         setString(text: string): void;
         getString(): string;
-        
+
         // Font Management
         setFontSize(size: number): void;
         setFontName(fontName: string): void;
-        
+
         // Alignment
         setHorizontalAlignment(align: number): void;
         setVerticalAlignment(align: number): void;
-        
+
         // Text Effects
         enableStroke(strokeColor: cc.Color, strokeSize: number): void;
         disableStroke(): void;
-        enableShadow(offsetX: number, offsetY: number, blurRadius: number, color: cc.Color): void;
+        enableShadow(color: cc.Color, offsetX: number, offsetY: number, blurRadius: number): void;
+        enableShadow(color: cc.Color, offset: cc.Size, blurRadius: number): void;
         disableShadow(): void;
     }
     export class LabelBMFont extends Sprite {
         setLineBreakWithoutSpace();
         getBlendFunc();
-        isOpacityModifyRGB() : boolean;
+        isOpacityModifyRGB(): boolean;
         getLetter();
-        getString() : string;
+        getString(): string;
         setBlendFunc();
-        setString(str:string);
+        setString(str: string);
         initWithString();
-        setOpacityModifyRGB(bool : boolean);
+        setOpacityModifyRGB(bool: boolean);
         getFntFile();
         setFntFile();
         setAlignment();
@@ -2974,13 +3094,11 @@ declare module cc {
          * //OR
          * var aScene = new cc.Scene();
          */
-        static create(t?:number, scene?:Scene):Scene;
+        static create(t?: number, scene?: Scene): Scene;
 
-        static createWithPhysics():Scene;
+        static createWithPhysics(): Scene;
 
-        static createWithSize(size:Size):Scene;
-
-
+        static createWithSize(size: Size): Scene;
     }
     //#endregion cocos2d/layers_scenes_transitions_nodes/CCScene.js
 
@@ -2997,15 +3115,15 @@ declare module cc {
          *
          * @return {Boolean}
          */
-        init(...args:any[]):boolean;
+        init(...args: any[]): boolean;
 
-        isMouseEnabled():boolean;
+        isMouseEnabled(): boolean;
 
-        setMouseEnabled(enabled:boolean);
+        setMouseEnabled(enabled: boolean);
 
-        setMousePriority(priority:number);
+        setMousePriority(priority: number);
 
-        getMousePriority():number;
+        getMousePriority(): number;
 
         /**
          * whether or not it will receive Touch events.<br/>
@@ -3013,44 +3131,44 @@ declare module cc {
          * Only the touches of this node will be affected. This "method" is not propagated to it's children.<br/>
          * @return {Boolean}
          */
-        isTouchEnabled():boolean;
+        isTouchEnabled(): boolean;
 
         /**
          * Enable touch events
          * @param {Boolean} enabled
          */
-        setTouchEnabled(enabled:boolean);
+        setTouchEnabled(enabled: boolean);
 
         /** returns the touch mode.
          * @return {Number}
          */
-        getTouchMode():number;
+        getTouchMode(): number;
 
         /** Sets the touch mode.
          * @param {Number} mode
          */
-        setTouchMode(mode:number);
+        setTouchMode(mode: number);
 
         /**
          * whether or not it will receive Accelerometer events<br/>
          * You can enable / disable accelerometer events with this property.
          * @return {Boolean}
          */
-        isAccelerometerEnabled():boolean;
+        isAccelerometerEnabled(): boolean;
 
         /**
          * isAccelerometerEnabled setter
          * @param {Boolean} enabled
          */
-        setAccelerometerEnabled(enabled:boolean);
+        setAccelerometerEnabled(enabled: boolean);
 
         /**
          * accelerometerInterval setter
          * @param {Number} interval
          */
-        setAccelerometerInterval(interval:number);
+        setAccelerometerInterval(interval: number);
 
-        onAccelerometer(accelerationValue:number);
+        onAccelerometer(accelerationValue: number);
 
         /**
          * whether or not it will receive keyboard events<br/>
@@ -3058,13 +3176,13 @@ declare module cc {
          * it's new in cocos2d-x
          * @return {Boolean}
          */
-        isKeyboardEnabled():boolean;
+        isKeyboardEnabled(): boolean;
 
         /**
          * Enable Keyboard interaction
          * @param {Boolean} enabled
          */
-        setKeyboardEnabled(enabled:boolean);
+        setKeyboardEnabled(enabled: boolean);
 
         /**
          * This is run when ever a layer just become visible
@@ -3090,54 +3208,54 @@ declare module cc {
          * @param {event} event
          * @return {Boolean}
          */
-        onTouchBegan(touch:Touch, event):boolean;
+        onTouchBegan(touch: Touch, event): boolean;
 
         /**
          * callback when a touch event moved
          * @param {cc.Touch} touch
          * @param {event} event
          */
-        onTouchMoved(touch:Touch, event);
+        onTouchMoved(touch: Touch, event);
 
         /**
          * callback when a touch event finished
          * @param {cc.Touch} touch
          * @param {event} event
          */
-        onTouchEnded(touch:Touch, event);
+        onTouchEnded(touch: Touch, event);
 
         /**
          * @param {cc.Touch} touch
          * @param {event} event
          */
-        onTouchCancelled(touch:Touch, event);
+        onTouchCancelled(touch: Touch, event);
 
         /**
          * Touches is the same as Touch, except this one can handle multi-touch
          * @param {cc.Touch} touch
          * @param {event} event
          */
-        onTouchesBegan(touch:Touch, event);
+        onTouchesBegan(touch: Touch, event);
 
         /**
          * when a touch moved
          * @param {cc.Touch} touch
          * @param {event} event
          */
-        onTouchesMoved(touch:Touch, event);
+        onTouchesMoved(touch: Touch, event);
 
         /**
          * when a touch finished
          * @param {cc.Touch} touch
          * @param {event} event
          */
-        onTouchesEnded(touch:Touch, event);
+        onTouchesEnded(touch: Touch, event);
 
         /**
          * @param touch
          * @param event
          */
-        onTouchesCancelled(touch:Touch, event);
+        onTouchesCancelled(touch: Touch, event);
 
         // ---------------------CCMouseEventDelegate interface------------------------------
 
@@ -3147,7 +3265,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onMouseDown(event):boolean;
+        onMouseDown(event): boolean;
 
         /**
          * <p>called when the "mouseDragged" event is received.         <br/>
@@ -3155,7 +3273,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onMouseDragged(event):boolean;
+        onMouseDragged(event): boolean;
 
         /**
          * <p> called when the "mouseMoved" event is received.            <br/>
@@ -3163,7 +3281,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onMouseMoved(event):boolean;
+        onMouseMoved(event): boolean;
 
         /**
          * <p> called when the "mouseUp" event is received.               <br/>
@@ -3171,7 +3289,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onMouseUp(event):boolean;
+        onMouseUp(event): boolean;
 
         //right
         /**
@@ -3180,7 +3298,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onRightMouseDown(event):boolean;
+        onRightMouseDown(event): boolean;
 
         /**
          * <p> called when the "rightMouseDragged" event is received.    <br/>
@@ -3188,7 +3306,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onRightMouseDragged(event):boolean;
+        onRightMouseDragged(event): boolean;
 
         /**
          * <p> called when the "rightMouseUp" event is received.          <br/>
@@ -3196,7 +3314,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onRightMouseUp(event):boolean;
+        onRightMouseUp(event): boolean;
 
         //other
         /**
@@ -3205,7 +3323,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onOtherMouseDown(event):boolean;
+        onOtherMouseDown(event): boolean;
 
         /**
          * <p> called when the "otherMouseDragged" event is received.     <br/>
@@ -3213,7 +3331,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onOtherMouseDragged(event):boolean;
+        onOtherMouseDragged(event): boolean;
 
         /**
          * <p> called when the "otherMouseUp" event is received.          <br/>
@@ -3221,7 +3339,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onOtherMouseUp(event):boolean;
+        onOtherMouseUp(event): boolean;
 
         //scroll wheel
         /**
@@ -3230,7 +3348,7 @@ declare module cc {
          * @param event
          * @return {Boolean}
          */
-        onScrollWheel(event):boolean;
+        onScrollWheel(event): boolean;
 
         // enter / exit
         /**
@@ -3239,7 +3357,7 @@ declare module cc {
          * @param theEvent
          * @return {Boolean}
          */
-        onMouseEntered(theEvent):boolean;
+        onMouseEntered(theEvent): boolean;
 
         /**
          * <p> called when the "mouseExited" event is received.          <br/>
@@ -3247,7 +3365,7 @@ declare module cc {
          * @param theEvent
          * @return {Boolean}
          */
-        onMouseExited(theEvent):boolean;
+        onMouseExited(theEvent): boolean;
 
         // ---------------------CCKeyboardDelegate interface------------------------------
 
@@ -3258,7 +3376,7 @@ declare module cc {
          * // example
          * if(keyCode == cc.KEY.w){}
          */
-        onKeyDown(keyCode:number);
+        onKeyDown(keyCode: number);
 
         /**
          * Call back when a key is released
@@ -3267,7 +3385,7 @@ declare module cc {
          * // example
          * if(keyCode == cc.KEY.w){}
          */
-        onKeyUp(keyCode:number);
+        onKeyUp(keyCode: number);
 
         /**
          * creates a layer
@@ -3277,7 +3395,7 @@ declare module cc {
          * //Yes! it's that simple
          * @return {cc.Layer|Null}
          */
-        static create():Layer;
+        static create(): Layer;
     }
 
     /**
@@ -3302,9 +3420,9 @@ declare module cc {
          * @param {Number} height
          * @return {Boolean}
          */
-        init(...args:any[]/*color: Color, width: number, height: number*/):boolean;
+        init(...args: any[] /*color: Color, width: number, height: number*/): boolean;
 
-        static create(color?:Color, width?:number, height?:number):LayerColor;
+        static create(color?: Color, width?: number, height?: number): LayerColor;
     }
 
     /**
@@ -3334,7 +3452,7 @@ declare module cc {
          * get the starting color
          * @return {cc.Color}
          */
-        getStartColor():Color;
+        getStartColor(): Color;
 
         /**
          * set the starting color
@@ -3344,7 +3462,7 @@ declare module cc {
          * myGradientLayer.setStartColor(cc.c3b(255,0,0));
          * //set the starting gradient to red
          */
-        setStartColor(color:Color);
+        setStartColor(color: Color);
 
         /**
          * set the end gradient color
@@ -3354,58 +3472,58 @@ declare module cc {
          * myGradientLayer.setEndColor(cc.c3b(255,0,0));
          * //set the ending gradient to red
          */
-        setEndColor(color:Color);
+        setEndColor(color: Color);
 
         /**
          * get the end color
          * @return {cc.Color}
          */
-        getEndColor():Color;
+        getEndColor(): Color;
 
         /**
          * set starting gradient opacity
          * @param {Number} o from 0 to 255, 0 is transparent
          */
-        setStartOpacity(o:number);
+        setStartOpacity(o: number);
 
         /**
          * get the starting gradient opacity
          * @return {Number}
          */
-        getStartOpacity():number;
+        getStartOpacity(): number;
 
         /**
          * set the end gradient opacity
          * @param {Number} o
          */
-        setEndOpacity(o:number);
+        setEndOpacity(o: number);
 
         /**
          * get the end gradient opacity
          * @return {Number}
          */
-        getEndOpacity():number;
+        getEndOpacity(): number;
 
         /**
          * set vector
          * @param {cc.Point} Var
          */
-        setVector(Var:Point);
+        setVector(Var: Point);
 
         /**
          * @return {cc.Point}
          */
-        getVector():Point;
+        getVector(): Point;
 
         /** is Compressed Interpolation
          * @return {Boolean}
          */
-        isCompressedInterpolation():boolean;
+        isCompressedInterpolation(): boolean;
 
         /**
          * @param {Boolean} compress
          */
-        setCompressedInterpolation(compress:boolean);
+        setCompressedInterpolation(compress: boolean);
 
         /**
          * @param {cc.Color} start starting color
@@ -3413,7 +3531,7 @@ declare module cc {
          * @param {cc.Point|Null} v
          * @return {Boolean}
          */
-        init(start:Color, end:Color, v?:Point):boolean;
+        init(start: Color, end: Color, v?: Point): boolean;
     }
     //#endregion cocos2d/layers_scenes_transitions_nodes/CCLayer.js
 
@@ -3423,7 +3541,7 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var SCENE_FADE:number;
+    var SCENE_FADE: number;
 
     /**
      * cc.TransitionEaseScene can ease the actions of the scene protocol.
@@ -3442,25 +3560,25 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var TRANSITION_ORIENTATION_LEFT_OVER:number;
+    var TRANSITION_ORIENTATION_LEFT_OVER: number;
     /**
      * horizontal orientation type where the Right is nearer
      * @constant
      * @type Number
      */
-    var TRANSITION_ORIENTATION_RIGHT_OVER:number;
+    var TRANSITION_ORIENTATION_RIGHT_OVER: number;
     /**
      * vertical orientation type where the Up is nearer
      * @constant
      * @type Number
      */
-    var TRANSITION_ORIENTATION_UP_OVER:number;
+    var TRANSITION_ORIENTATION_UP_OVER: number;
     /**
      * vertical orientation type where the Bottom is nearer
      * @constant
      * @type Number
      */
-    var TRANSITION_ORIENTATION_DOWN_OVER:number;
+    var TRANSITION_ORIENTATION_DOWN_OVER: number;
 
     /**
      * @class
@@ -3488,7 +3606,7 @@ declare module cc {
          * @param {cc.Scene} scene a scene to transit to
          * @return {Boolean} return false if error
          */
-        initWithDuration(t:number, scene:Scene):boolean;
+        initWithDuration(t: number, scene: Scene): boolean;
 
         /**
          * called after the transition finishes
@@ -3508,7 +3626,7 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var SCENE_RADIAL:number;
+    var SCENE_RADIAL: number;
 
     /**
      * cc.TransitionProgress transition.
@@ -3533,7 +3651,7 @@ declare module cc {
          * @param {cc.Scene} scene
          * @return {cc.TransitionProgress}
          */
-        static create(t?:number, scene?:Scene):TransitionProgress;
+        static create(t?: number, scene?: Scene): TransitionProgress;
     }
 
     /**
@@ -3550,7 +3668,7 @@ declare module cc {
          * @param {cc.Scene} scene
          * @return {cc.TransitionProgressRadialCCW}
          */
-        static create(t?:number, scene?:Scene):TransitionProgressRadialCCW;
+        static create(t?: number, scene?: Scene): TransitionProgressRadialCCW;
     }
 
     /**
@@ -3567,7 +3685,7 @@ declare module cc {
          * @param {cc.Scene} scene
          * @return {cc.TransitionProgressRadialCW}
          */
-        static create(t?:number, scene?:Scene):TransitionProgressRadialCW;
+        static create(t?: number, scene?: Scene): TransitionProgressRadialCW;
     }
 
     /**
@@ -3584,7 +3702,7 @@ declare module cc {
          * @param {cc.Scene} scene
          * @return {cc.TransitionProgressHorizontal}
          */
-        create(t:number, scene:Scene):TransitionProgressHorizontal;
+        create(t: number, scene: Scene): TransitionProgressHorizontal;
     }
 
     /**
@@ -3600,7 +3718,7 @@ declare module cc {
          * @param {cc.Scene} scene
          * @return {cc.TransitionProgressVertical}
          */
-        create(t:number, scene:Scene):TransitionProgressVertical;
+        create(t: number, scene: Scene): TransitionProgressVertical;
     }
 
     /**
@@ -3616,7 +3734,7 @@ declare module cc {
          * @param {cc.Scene} scene
          * @return {cc.TransitionProgressInOut}
          */
-        create(t:number, scene:Scene):TransitionProgressInOut;
+        create(t: number, scene: Scene): TransitionProgressInOut;
     }
 
     /**
@@ -3632,7 +3750,7 @@ declare module cc {
          * @param {cc.Scene} scene
          * @return {cc.TransitionProgressOutIn}
          */
-        create(t:number, scene:Scene):TransitionProgressOutIn;
+        create(t: number, scene: Scene): TransitionProgressOutIn;
     }
     //#endregion cocos2d/layers_scenes_transitions_nodes/TransitionProgress.js
 
@@ -3653,7 +3771,7 @@ declare module cc {
          * //there is no limit on how many menu item you can pass in
          * var myMenu = cc.Menu.create(menuitem1, menuitem2, menuitem3);
          */
-        static create(...nodes:Node[]):Menu;
+        static create(...nodes: Node[]): Menu;
     }
     //#endregion cocos2d/menu_nodes/CCMenu.js
 
@@ -3668,39 +3786,39 @@ declare module cc {
          * MenuItem is selected
          * @return {Boolean}
          */
-        isSelected():boolean;
+        isSelected(): boolean;
 
         /**
          * set the target/selector of the menu item
          * @param {function|String} selector
          * @param {cc.Node} rec
          */
-        setTarget(selector, rec:Node);
+        setTarget(selector, rec: Node);
 
         /**
          * MenuItem is Enabled
          * @return {Boolean}
          */
-        isEnabled():boolean;
+        isEnabled(): boolean;
 
         /**
          * set enable value of MenuItem
          * @param {Boolean} enable
          */
-        setEnabled(enable:boolean);
+        setEnabled(enable: boolean);
 
         /**
          * @param {function|String} selector
          * @param {cc.Node} rec
          * @return {Boolean}
          */
-        initWithCallback(selector, rec:Node):boolean;
+        initWithCallback(selector, rec: Node): boolean;
 
         /**
          * return rect value of cc.MenuItem
          * @return {cc.Rect}
          */
-        rect():Rect;
+        rect(): Rect;
 
         /**
          * same as setIsSelected(true)
@@ -3716,7 +3834,7 @@ declare module cc {
          * @param {function|String} selector
          * @param {cc.Node} rec
          */
-        setCallback(selector, rec:Node);
+        setCallback(selector, rec: Node);
 
         /**
          * call the selector with target
@@ -3740,7 +3858,7 @@ declare module cc {
          * @param {cc.Node|Null} target
          * @return {cc.MenuItemLabel}
          */
-        static create(...args:any[]/*label, selector, target*/):MenuItemLabel;
+        static create(...args: any[] /*label, selector, target*/): MenuItemLabel;
     }
 
     /**
@@ -3766,7 +3884,9 @@ declare module cc {
          * //OR
          * var item = cc.MenuItemAtlasFont.create('text to display', 'font.fnt', 12, 32, ' ', game, game.run)
          */
-        static create(...args:any[]/*value, charMapFile, itemWidth, itemHeight, startCharMap, target, selector*/):MenuItemAtlasFont;
+        static create(
+            ...args: any[] /*value, charMapFile, itemWidth, itemHeight, startCharMap, target, selector*/
+        ): MenuItemAtlasFont;
     }
 
     /**
@@ -3778,23 +3898,23 @@ declare module cc {
         /**
          * @param {Number} s
          */
-        setFontSize(s:number);
+        setFontSize(s: number);
 
         /**
          *
          * @return {Number}
          */
-        fontSize():number;
+        fontSize(): number;
 
         /**
          * @param {String} name
          */
-        setFontName(name:string);
+        setFontName(name: string);
 
         /**
          * @return {String}
          */
-        fontName():string;
+        fontName(): string;
 
         /**
          * create a menu item from string
@@ -3815,7 +3935,7 @@ declare module cc {
          * cc.MenuItemFont.setFontName('my Fancy Font');
          * cc.MenuItemFont.setFontSize(62);
          */
-        static create(...args:any[]/*value, selector, target*/):MenuItemFont;
+        static create(...args: any[] /*value, selector, target*/): MenuItemFont;
     }
 
     /**
@@ -3849,7 +3969,9 @@ declare module cc {
          * var item = cc.MenuItemSprite.create(normalImage, SelectedImage, disabledImage, targetNode.callback, targetNode)
          * //same as above, but with disabled image, and passing in callback function
          */
-        static create(...args:any[]/*normalSprite, selectedSprite, three, four, five*/):MenuItemSprite;
+        static create(
+            ...args: any[] /*normalSprite, selectedSprite, three, four, five*/
+        ): MenuItemSprite;
     }
 
     /**
@@ -3880,13 +4002,28 @@ declare module cc {
          * //same as above, but pass in the actual function and disabled image
          * var item = cc.MenuItemImage.create('normal.png', 'selected.png', 'disabled.png', gameScene.run, gameScene)
          */
-        static create():MenuItemImage;
+        static create(): MenuItemImage;
 
-        static create(normalImage:string, selectedImage:string, three:(sender:any) => void):MenuItemImage;
+        static create(
+            normalImage: string,
+            selectedImage: string,
+            three: (sender: any) => void
+        ): MenuItemImage;
 
-        static create(normalImage:string, selectedImage:string, three:(sender:any) => void, four:Node):MenuItemImage;
+        static create(
+            normalImage: string,
+            selectedImage: string,
+            three: (sender: any) => void,
+            four: Node
+        ): MenuItemImage;
 
-        static create(normalImage:string, selectedImage:string, three:string, four:(sender:any) => void, five:Node):MenuItemImage;
+        static create(
+            normalImage: string,
+            selectedImage: string,
+            three: string,
+            four: (sender: any) => void,
+            five: Node
+        ): MenuItemImage;
     }
 
     /**
@@ -3899,43 +4036,43 @@ declare module cc {
         /**
          * @return {Number}
          */
-        getOpacity():number;
+        getOpacity(): number;
 
         /**
          * @param {Number} Opacity
          */
-        setOpacity(Opacity:number);
+        setOpacity(Opacity: number);
 
         /**
          * @return {cc.Color}
          */
-        getColor():Color;
+        getColor(): Color;
 
         /**
          * @param {cc.Color} Color
          */
-        setColor(Color:Color);
+        setColor(Color: Color);
 
         /**
          * @return {Number}
          */
-        getSelectedIndex():number;
+        getSelectedIndex(): number;
 
         /**
          * @param {Number} SelectedIndex
          */
-        setSelectedIndex(SelectedIndex:number);
+        setSelectedIndex(SelectedIndex: number);
 
         /**
          * similar to get children
          * @return {cc.MenuItem}
          */
-        getSubItems():MenuItem[];
+        getSubItems(): MenuItem[];
 
         /**
          * @param {cc.MenuItem} SubItems
          */
-        setSubItems(SubItems:MenuItem[]);
+        setSubItems(SubItems: MenuItem[]);
 
         /**
          * @param {cc.MenuItem} args[0...last-2] the rest in the array are cc.MenuItems
@@ -3943,12 +4080,12 @@ declare module cc {
          * @param {cc.Node} args[last] the first item in the args array is a target
          * @return {Boolean}
          */
-        initWithItems(...args:any[]):boolean;
+        initWithItems(...args: any[]): boolean;
 
         /**
          * @param {cc.MenuItem} item
          */
-        addSubItem(item:MenuItem);
+        addSubItem(item: MenuItem);
 
         /**
          * activate the menu item
@@ -3968,17 +4105,17 @@ declare module cc {
         /**
          * @param {Boolean} enabled
          */
-        setEnabled(enabled:boolean);
+        setEnabled(enabled: boolean);
 
         /**
          * returns the selected item
          * @return {cc.MenuItem}
          */
-        selectedItem():MenuItem;
+        selectedItem(): MenuItem;
 
-        setOpacityModifyRGB(value:boolean);
+        setOpacityModifyRGB(value: boolean);
 
-        isOpacityModifyRGB():boolean;
+        isOpacityModifyRGB(): boolean;
 
         onEnter();
 
@@ -3998,7 +4135,7 @@ declare module cc {
          * notYetToggler.addSubItem(cc.MenuItemFont.create("Off"));
          * //this is useful for constructing a toggler without a callback function (you wish to control the behavior from somewhere else)
          */
-        static create(...args:any[]):MenuItemToggle;
+        static create(...args: any[]): MenuItemToggle;
     }
     //#endregion cocos2d/menu_nodes/CCMenuItem.js
 
@@ -4013,13 +4150,13 @@ declare module cc {
          * did something when Finish Launching
          * @return {Boolean}
          */
-        didFinishLaunchingWithOptions():boolean;
+        didFinishLaunchingWithOptions(): boolean;
 
         /**
          * Return Controller of Game Application
          * @return {cc.AppController}
          */
-        static shareAppController():AppController;
+        static shareAppController(): AppController;
     }
     //#endregion cocos2d/platform/AppControl.js
 
@@ -4030,17 +4167,17 @@ declare module cc {
      * @type {Object}
      */
     enum TARGET_PLATFORM {
-        WINDOWS,//: 0,
-        LINUX,//: 1,
-        MACOS,//: 2,
-        ANDROID,//: 3,
-        IPHONE,//: 4,
-        IPAD,//: 5,
-        BLACKBERRY,//: 6,
-        NACL,//: 7,
-        EMSCRIPTEN,//: 8,
-        MOBILE_BROWSER,//: 100,
-        PC_BROWSER,//: 101
+        WINDOWS, //: 0,
+        LINUX, //: 1,
+        MACOS, //: 2,
+        ANDROID, //: 3,
+        IPHONE, //: 4,
+        IPAD, //: 5,
+        BLACKBERRY, //: 6,
+        NACL, //: 7,
+        EMSCRIPTEN, //: 8,
+        MOBILE_BROWSER, //: 100,
+        PC_BROWSER, //: 101
     }
 
     /**
@@ -4048,28 +4185,28 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var ORIENTATION_PORTRAIT:number;
+    var ORIENTATION_PORTRAIT: number;
 
     /**
      * Device oriented vertically, home button on the top
      * @constant
      * @type Number
      */
-    var ORIENTATION_PORTRAIT_UPSIDE_DOWN:number;
+    var ORIENTATION_PORTRAIT_UPSIDE_DOWN: number;
 
     /**
      * Device oriented horizontally, home button on the right
      * @constant
      * @type Number
      */
-    var ORIENTATION_LANDSCAPE_LEFT:number;
+    var ORIENTATION_LANDSCAPE_LEFT: number;
 
     /**
      * Device oriented horizontally, home button on the left
      * @constant
      * @type Number
      */
-    var ORIENTATION_LANDSCAPE_RIGHT:number;
+    var ORIENTATION_LANDSCAPE_RIGHT: number;
 
     //engine render type
 
@@ -4078,50 +4215,50 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var CANVAS:number;
+    var CANVAS: number;
 
     /**
      * WebGL of render type
      * @constant
      * @type Number
      */
-    var WEBGL:number;
+    var WEBGL: number;
 
     /**
      * drawing primitive of game engine
      * @type cc.DrawingPrimitive
      */
-    var drawingUtil:DrawingPrimitive;
+    var drawingUtil: DrawingPrimitive;
 
     /**
      * main Canvas 2D Context of game engine
      * @type CanvasContext
      */
-    var renderContext:CanvasRenderingContext2D;
+    var renderContext: CanvasRenderingContext2D;
 
     /**
      * main Canvas of game engine
      * @type HTMLCanvasElement
      */
-    var canvas:HTMLCanvasElement;
+    var canvas: HTMLCanvasElement;
 
     /**
      * This Div element contain all game canvas
      * @type HTMLDivElement
      */
-    var gameDiv:HTMLDivElement;
+    var gameDiv: HTMLDivElement;
 
     /**
      * current render type of game engine
      * @type Number
      */
-    var renderContextType:number;
+    var renderContextType: number;
 
     /**
      * save original size of canvas, use for resize canvas
      * @type cc.Size
      */
-    var originalCanvasSize:Size;
+    var originalCanvasSize: Size;
 
     /**
      * <p>
@@ -4146,20 +4283,19 @@ declare module cc {
      * // declare like this: <div id="Cocos2dGameContainer" width="800" height="450"></div>
      * cc.setup("Cocos2dGameContainer");
      */
-    function setup(el?:string, width?:number, height?:number);
+    function setup(el?: string, width?: number, height?: number);
 
     /**
      * Run main loop of game engine
      * @class
      * @extends cc.Class
      */
-    export class Application extends Class {
-    }
+    export class Application extends Class {}
     //#endregion cocos2d/platform/CCApplication.js
 
     //#region cocos2d/platform/CCClass.js
     export class Class {
-        rootNode:cc.Node;
+        rootNode: cc.Node;
     }
     //#endregion cocos2d/platform/CCClass.js
 
@@ -4168,39 +4304,39 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var INVALID_INDEX:number;
+    var INVALID_INDEX: number;
 
     /**
      * PI is the ratio of a circle's circumference to its diameter.
      * @constant
      * @type Number
      */
-    var PI:number;
+    var PI: number;
 
     /**
      * @constant
      * @type Number
      */
-    var FLT_MAX:number;
+    var FLT_MAX: number;
 
     /**
      * @constant
      * @type Number
      */
-    var RAD:number;
+    var RAD: number;
 
     /**
      * @constant
      * @type Number
      */
-    var DEG:number;
+    var DEG: number;
 
     /**
      * maximum unsigned int value
      * @constant
      * @type Number
      */
-    var UINT_MAX:number;
+    var UINT_MAX: number;
 
     /**
      * <p>
@@ -4214,7 +4350,7 @@ declare module cc {
      * cc.lerp(2,10,0.5)//returns 6<br/>
      * cc.lerp(2,10,0.2)//returns 3.6
      */
-    function lerp(a:number, b:number, r:number):number;
+    function lerp(a: number, b: number, r: number): number;
 
     /**
      * returns a random float between -1 and 1
@@ -4264,28 +4400,28 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var REPEAT_FOREVER:number;
+    var REPEAT_FOREVER: number;
 
     /**
      * default gl blend src function. Compatible with premultiplied alpha images.
      * @constant
      * @type Number
      */
-    var BLEND_SRC:number;
+    var BLEND_SRC: number;
 
     /**
      * default gl blend dst function. Compatible with premultiplied alpha images.
      * @constant
      * @type Number
      */
-    var BLEND_DST:number;
+    var BLEND_DST: number;
 
     /**
      * Helpful macro that setups the GL server state, the correct GL program and sets the Model View Projection matrix
      * @param {cc.Node} node setup node
      * @function
      */
-    function NODE_DRAW_SETUP(node:Node);
+    function NODE_DRAW_SETUP(node: Node);
 
     /**
      * <p>
@@ -4318,13 +4454,13 @@ declare module cc {
      * @param {Number} addNumber
      * @function
      */
-    function INCREMENT_GL_DRAWS(addNumber:number);
+    function INCREMENT_GL_DRAWS(addNumber: number);
 
     /**
      * @constant
      * @type Number
      */
-    var FLT_EPSILON:number;
+    var FLT_EPSILON: number;
 
     /**
      * <p>
@@ -4333,7 +4469,7 @@ declare module cc {
      * </p>
      * @function
      */
-    function CONTENT_SCALE_FACTOR():number;
+    function CONTENT_SCALE_FACTOR(): number;
 
     /**
      * Converts a rect in points to pixels
@@ -4341,7 +4477,7 @@ declare module cc {
      * @return {cc.Point}
      * @function
      */
-    function POINT_POINTS_TO_PIXELS(points:Point):Point;
+    function POINT_POINTS_TO_PIXELS(points: Point): Point;
 
     /**
      * Converts a rect in points to pixels
@@ -4349,7 +4485,7 @@ declare module cc {
      * @return {cc.Size}
      * @function
      */
-    function SIZE_POINTS_TO_PIXELS(sizeInPoints:Size):Size;
+    function SIZE_POINTS_TO_PIXELS(sizeInPoints: Size): Size;
 
     /**
      * Converts a rect in pixels to points
@@ -4357,34 +4493,34 @@ declare module cc {
      * @return {cc.Size}
      * @function
      */
-    function SIZE_PIXELS_TO_POINTS(sizeInPixels:Size):Size;
+    function SIZE_PIXELS_TO_POINTS(sizeInPixels: Size): Size;
 
     /**
      * Converts a rect in pixels to points
      * @param pixels
      * @function
      */
-    function POINT_PIXELS_TO_POINTS(pixels:Point):Point;
+    function POINT_PIXELS_TO_POINTS(pixels: Point): Point;
 
     /**
      * Converts a rect in pixels to points
      * @param {cc.Rect} pixel
      * @function
      */
-    function RECT_PIXELS_TO_POINTS(pixel:Rect);
+    function RECT_PIXELS_TO_POINTS(pixel: Rect);
 
     /**
      * Converts a rect in points to pixels
      * @param {cc.Rect} point
      * @function
      */
-    function RECT_POINTS_TO_PIXELS(point:Point);
+    function RECT_POINTS_TO_PIXELS(point: Point);
 
     //#endregion cocos2d/platform/CCMacro.js
 
     //#region cocos2d/platform/CCTypes.js
     export class Color {
-        constructor(r?:number, g?:number, b?:number, a?:number);
+        constructor(r?: number, g?: number, b?: number, a?: number);
     }
     export module color {
         var WHITE: Color;
@@ -4397,9 +4533,9 @@ declare module cc {
         var ORANGE: Color;
         var GRAY: Color;
     }
-    function color(r:any, g?:number, b?:number, a?:number): Color;
+    function color(r: any, g?: number, b?: number, a?: number): Color;
     function colorEqual(c1: Color, c2: Color): boolean;
-    function hexToColor(hex: string) : Color;
+    function hexToColor(hex: string): Color;
     function colorToHex(color: Color): string;
 
     /**
@@ -4410,10 +4546,10 @@ declare module cc {
      * @param {Number} y1
      */
     export class Vertex2F {
-        x:number;
-        y:number;
+        x: number;
+        y: number;
 
-        constructor(x1?:number, y1?:number);
+        constructor(x1?: number, y1?: number);
     }
 
     /**
@@ -4423,7 +4559,7 @@ declare module cc {
      * @param {Number} y
      * @return {cc.Vertex2F}
      */
-    function Vertex2(x:number, y:number):Vertex2F;
+    function Vertex2(x: number, y: number): Vertex2F;
 
     /**
      * A vertex composed of 3 floats: x, y, z
@@ -4434,11 +4570,11 @@ declare module cc {
      * @param {Number} z1
      */
     export class Vertex3F {
-        x:number;
-        y:number;
-        z:number;
+        x: number;
+        y: number;
+        z: number;
 
-        constructor(x1?:number, y1?:number, z1?:number);
+        constructor(x1?: number, y1?: number, z1?: number);
     }
 
     /**
@@ -4449,7 +4585,7 @@ declare module cc {
      * @param {Number} z
      * @return {cc.Vertex3F}
      */
-    function vertex3(x:number, y:number, z:number);
+    function vertex3(x: number, y: number, z: number);
 
     /**
      * A texcoord composed of 2 floats: u, y
@@ -4459,10 +4595,10 @@ declare module cc {
      * @param {Number} v1
      */
     export class Tex2F {
-        u:number;
-        v:number;
+        u: number;
+        v: number;
 
-        constructor(u1?:number, v1?:number);
+        constructor(u1?: number, v1?: number);
     }
 
     /**
@@ -4472,7 +4608,7 @@ declare module cc {
      * @param {Number} v
      * @return {cc.Tex2F}
      */
-    function tex2(u:number, v:number);
+    function tex2(u: number, v: number);
 
     /**
      * Point Sprite component
@@ -4483,11 +4619,11 @@ declare module cc {
      * @param {Number} size1
      */
     export class PointSprite {
-        pos:Vertex2F;
-        color:Color;
-        size:number;
+        pos: Vertex2F;
+        color: Color;
+        size: number;
 
-        constructor(pos1:Vertex2F, color1:Color, size1:number);
+        constructor(pos1: Vertex2F, color1: Color, size1: number);
     }
 
     /**
@@ -4500,12 +4636,12 @@ declare module cc {
      * @param {cc.Vertex2F} br1
      */
     export class Quad2 {
-        tl:Vertex2F;
-        tr:Vertex2F;
-        bl:Vertex2F;
-        br:Vertex2F;
+        tl: Vertex2F;
+        tr: Vertex2F;
+        bl: Vertex2F;
+        br: Vertex2F;
 
-        constructor(tl1?:Vertex2F, tr1?:Vertex2F, bl1?:Vertex2F, br1?:Vertex2F);
+        constructor(tl1?: Vertex2F, tr1?: Vertex2F, bl1?: Vertex2F, br1?: Vertex2F);
     }
 
     /**
@@ -4518,12 +4654,12 @@ declare module cc {
      * @param {cc.Vertex3F} tr1
      */
     export class Quad3 {
-        bl:Vertex3F;
-        br:Vertex3F;
-        tl:Vertex3F;
-        tr:Vertex3F;
+        bl: Vertex3F;
+        br: Vertex3F;
+        tl: Vertex3F;
+        tr: Vertex3F;
 
-        constructor(bl1?:Vertex3F, br1?:Vertex3F, tl1?:Vertex3F, tr1?:Vertex3F);
+        constructor(bl1?: Vertex3F, br1?: Vertex3F, tl1?: Vertex3F, tr1?: Vertex3F);
     }
 
     /**
@@ -4531,42 +4667,42 @@ declare module cc {
      * @constant
      * @type Number
      */
-    var TEXT_ALIGNMENT_LEFT:number;
+    var TEXT_ALIGNMENT_LEFT: number;
 
     /**
      * text alignment : center
      * @constant
      * @type Number
      */
-    var TEXT_ALIGNMENT_CENTER:number;
+    var TEXT_ALIGNMENT_CENTER: number;
 
     /**
      * text alignment : right
      * @constant
      * @type Number
      */
-    var TEXT_ALIGNMENT_RIGHT:number;
+    var TEXT_ALIGNMENT_RIGHT: number;
 
     /**
      * text alignment : top
      * @constant
      * @type Number
      */
-    var VERTICAL_TEXT_ALIGNMENT_TOP:number;
+    var VERTICAL_TEXT_ALIGNMENT_TOP: number;
 
     /**
      * text alignment : center
      * @constant
      * @type Number
      */
-    var VERTICAL_TEXT_ALIGNMENT_CENTER:number;
+    var VERTICAL_TEXT_ALIGNMENT_CENTER: number;
 
     /**
      * text alignment : bottom
      * @constant
      * @type Number
      */
-    var VERTICAL_TEXT_ALIGNMENT_BOTTOM:number;
+    var VERTICAL_TEXT_ALIGNMENT_BOTTOM: number;
 
     //#endregion cocos2d/platform/CCTypes.js
 
@@ -4582,9 +4718,7 @@ declare module cc {
      * @class
      * @extends cc.Class
      */
-    export class AnimationFrame extends Class {
-
-    }
+    export class AnimationFrame extends Class {}
 
     /**
      * <p>
@@ -4629,7 +4763,7 @@ declare module cc {
          * //Create an animation with sprite frames and delay
          * var animation3 = cc.Animation.create(animFrames, 0.2);
          */
-        static create(frames:AnimationFrame[], delay:number, loops:number):Animation;
+        static create(frames: AnimationFrame[], delay: number, loops: number): Animation;
 
         /**
          * Creates an animation with an array of cc.AnimationFrame, the delay per units in seconds and and how many times it should be executed.
@@ -4638,7 +4772,11 @@ declare module cc {
          * @param {Number} loops
          * @return {cc.Animation}
          */
-        static createWithAnimationFrames(arrayOfAnimationFrameNames:AnimationFrame[], delayPerUnit:number, loops:number):Animation;
+        static createWithAnimationFrames(
+            arrayOfAnimationFrameNames: AnimationFrame[],
+            delayPerUnit: number,
+            loops: number
+        ): Animation;
     }
     //#endregion cocos2d/sprite_nodes/CCAnimation.js
 
@@ -4673,17 +4811,17 @@ declare module cc {
      * aSprite.initWithFile("HelloHTML5World.png",cc.rect(0,0,480,320));
      */
     export class Sprite extends Node {
-        setOpacity(opacity : number);
-        getOpacity():number;
+        setOpacity(opacity: number);
+        getOpacity(): number;
 
         init();
-        initWithFile(name:string);
+        initWithFile(name: string);
         initWithTexture(texture: Texture2D);
-        initWithSpriteFrameName(name:string);
+        initWithSpriteFrameName(name: string);
 
         setSpriteFrame(sp: SpriteFrame);
         setTexture(texture: Texture2D);
-        getTexture() : Texture2D;
+        getTexture(): Texture2D;
         setFlippedY(n: number);
         setFlippedX(n: number);
         getBatchNode();
@@ -4710,17 +4848,15 @@ declare module cc {
         isFlippedY(): boolean;
         setVertexRect();
 
-        static create(fileName?:string, rect?:Rect):Sprite;
-        static createWithSpriteFrameName(spriteFrameName:string):Sprite;
+        static create(fileName?: string, rect?: Rect): Sprite;
+        static createWithSpriteFrameName(spriteFrameName: string): Sprite;
         static createWithSpriteFrame(sp: SpriteFrame): Sprite;
-        static createWithTexture(texture: Texture2D) : Sprite;
+        static createWithTexture(texture: Texture2D): Sprite;
     }
     //#endregion cocos2d/sprite_nodes/CCSprite.js
 
-
     //#region CocosDension/SimpleAudioEngine.js
-    class AudioEngine extends Class {
-    }
+    class AudioEngine extends Class {}
 
     /**
      * The Audio Engine implementation via <audio> tag in HTML5.
@@ -4733,7 +4869,7 @@ declare module cc {
          * This method is called when cc.Loader preload  resources.
          * @param {String} path The path of the music file with filename extension.
          */
-        preloadSound(path:string);
+        preloadSound(path: string);
 
         /**
          * Play music.
@@ -4743,7 +4879,7 @@ declare module cc {
          * //example
          * cc.AudioEngine.getInstance().playMusic(path, false);
          */
-        playMusic(path:string, loop:boolean);
+        playMusic(path: string, loop: boolean);
 
         /**
          * Stop playing music.
@@ -4752,7 +4888,7 @@ declare module cc {
          * //example
          * cc.AudioEngine.getInstance().stopMusic();
          */
-        stopMusic(releaseData:boolean);
+        stopMusic(releaseData: boolean);
 
         /**
          * Pause playing music.
@@ -4785,7 +4921,7 @@ declare module cc {
          * //example
          * var volume = cc.AudioEngine.getInstance().getMusicVolume();
          */
-        getMusicVolume():number;
+        getMusicVolume(): number;
 
         /**
          * Set the volume of music.
@@ -4794,7 +4930,7 @@ declare module cc {
          * //example
          * cc.AudioEngine.getInstance().setMusicVolume(0.5);
          */
-        setMusicVolume(volume:number);
+        setMusicVolume(volume: number);
 
         /**
          * Whether the music is playing.
@@ -4808,7 +4944,7 @@ declare module cc {
          *      cc.log("music is not playing");
          *  }
          */
-        isMusicPlaying():boolean;
+        isMusicPlaying(): boolean;
 
         /**
          * Play sound effect.
@@ -4818,7 +4954,7 @@ declare module cc {
          * //example
          * var soundId = cc.AudioEngine.getInstance().playEffect(path);
          */
-        playEffect(path:string, loop:boolean):number;
+        playEffect(path: string, loop: boolean): number;
 
         /**
          *The volume of the effects max value is 1.0,the min value is 0.0 .
@@ -4827,7 +4963,7 @@ declare module cc {
          * //example
          * var effectVolume = cc.AudioEngine.getInstance().getEffectsVolume();
          */
-        getEffectsVolume():number;
+        getEffectsVolume(): number;
 
         /**
          * Set the volume of sound effecs.
@@ -4836,7 +4972,7 @@ declare module cc {
          * //example
          * cc.AudioEngine.getInstance().setEffectsVolume(0.5);
          */
-        setEffectsVolume(volume:number);
+        setEffectsVolume(volume: number);
 
         /**
          * Pause playing sound effect.
@@ -4845,7 +4981,7 @@ declare module cc {
          * //example
          * cc.AudioEngine.getInstance().pauseEffect(audioID);
          */
-        pauseEffect(audioID:number);
+        pauseEffect(audioID: number);
 
         /**
          * Pause all playing sound effect.
@@ -4862,7 +4998,7 @@ declare module cc {
          * //example
          * cc.AudioEngine.getInstance().resumeEffect(audioID);
          */
-        resumeEffect(audioID:number);
+        resumeEffect(audioID: number);
 
         /**
          * Resume all playing sound effect
@@ -4879,7 +5015,7 @@ declare module cc {
          * //example
          * cc.AudioEngine.getInstance().stopEffect(audioID);
          */
-        stopEffect(audioID:number);
+        stopEffect(audioID: number);
 
         /**
          * Stop all playing sound effects.
@@ -4896,14 +5032,14 @@ declare module cc {
          * //example
          * cc.AudioEngine.getInstance().unloadEffect(EFFECT_FILE);
          */
-        unloadEffect(path:string);
+        unloadEffect(path: string);
 
         /**
          * search in this._supportedFormat if @param ext is there
          * @param {String} ext
          * @returns {Boolean}
          */
-        isFormatSupported(ext:string):boolean;
+        isFormatSupported(ext: string): boolean;
     }
     //#endregion CocosDension/SimpleAudioEngine.js
 }
@@ -4911,54 +5047,54 @@ declare module cc {
 /** N/A in cocos2d-html5 */
 declare module cc {
     export module sys {
-        var LANGUAGE_ENGLISH:string;
-        var LANGUAGE_CHINESE:string;
-        var LANGUAGE_FRENCH:string;
-        var LANGUAGE_ITALIAN:string;
-        var LANGUAGE_GERMAN:string;
-        var LANGUAGE_SPANISH:string;
-        var LANGUAGE_RUSSIAN:string;
-        var LANGUAGE_KOREAN:string;
-        var LANGUAGE_JAPANESE:string;
-        var LANGUAGE_HUNGARIAN:string;
-        var LANGUAGE_PORTUGUESE:string;
-        var LANGUAGE_ARABIC:string;
-        var LANGUAGE_NORWEGIAN:string;
-        var LANGUAGE_POLISH:string;
-        var OS_WINDOWS:string;
-        var OS_IOS:string;
-        var OS_OSX:string;
-        var OS_UNIX:string;
-        var OS_LINUX:string;
-        var OS_ANDROID:string;
-        var OS_UNKNOWN:string;
+        var LANGUAGE_ENGLISH: string;
+        var LANGUAGE_CHINESE: string;
+        var LANGUAGE_FRENCH: string;
+        var LANGUAGE_ITALIAN: string;
+        var LANGUAGE_GERMAN: string;
+        var LANGUAGE_SPANISH: string;
+        var LANGUAGE_RUSSIAN: string;
+        var LANGUAGE_KOREAN: string;
+        var LANGUAGE_JAPANESE: string;
+        var LANGUAGE_HUNGARIAN: string;
+        var LANGUAGE_PORTUGUESE: string;
+        var LANGUAGE_ARABIC: string;
+        var LANGUAGE_NORWEGIAN: string;
+        var LANGUAGE_POLISH: string;
+        var OS_WINDOWS: string;
+        var OS_IOS: string;
+        var OS_OSX: string;
+        var OS_UNIX: string;
+        var OS_LINUX: string;
+        var OS_ANDROID: string;
+        var OS_UNKNOWN: string;
 
-        var BROWSER_TYPE_WECHAT:string;
-        var BROWSER_TYPE_ANDROID:string;
-        var BROWSER_TYPE_IE:string;
-        var BROWSER_TYPE_QQ:string;
-        var BROWSER_TYPE_MOBILE_QQ:string;
-        var BROWSER_TYPE_UC:string;
-        var BROWSER_TYPE_360:string;
-        var BROWSER_TYPE_BAIDU_APP:string;
-        var BROWSER_TYPE_BAIDU:string;
-        var BROWSER_TYPE_MAXTHON:string;
-        var BROWSER_TYPE_OPERA:string;
-        var BROWSER_TYPE_MIUI:string;
-        var BROWSER_TYPE_FIREFOX:string;
-        var BROWSER_TYPE_SAFARI:string;
-        var BROWSER_TYPE_CHROME:string;
-        var BROWSER_TYPE_UNKNOWN:string;
+        var BROWSER_TYPE_WECHAT: string;
+        var BROWSER_TYPE_ANDROID: string;
+        var BROWSER_TYPE_IE: string;
+        var BROWSER_TYPE_QQ: string;
+        var BROWSER_TYPE_MOBILE_QQ: string;
+        var BROWSER_TYPE_UC: string;
+        var BROWSER_TYPE_360: string;
+        var BROWSER_TYPE_BAIDU_APP: string;
+        var BROWSER_TYPE_BAIDU: string;
+        var BROWSER_TYPE_MAXTHON: string;
+        var BROWSER_TYPE_OPERA: string;
+        var BROWSER_TYPE_MIUI: string;
+        var BROWSER_TYPE_FIREFOX: string;
+        var BROWSER_TYPE_SAFARI: string;
+        var BROWSER_TYPE_CHROME: string;
+        var BROWSER_TYPE_UNKNOWN: string;
 
-        var isNative:boolean;
+        var isNative: boolean;
 
-        var os:string;
+        var os: string;
 
-        var isMobile:boolean;
+        var isMobile: boolean;
 
-        var language:string;
+        var language: string;
 
-        var browserType:string;//null in jsb
+        var browserType: string; //null in jsb
 
         function garbageCollect();
 
@@ -4969,15 +5105,13 @@ declare module cc {
         function restartVM();
 
         var capabilities: {
-            "opengl": boolean;
-            "accelerometer" : boolean;
-            "touches" : boolean;
-            "keyboard": boolean;
-            "mouse": boolean;
-        }
+            opengl: boolean;
+            accelerometer: boolean;
+            touches: boolean;
+            keyboard: boolean;
+            mouse: boolean;
+        };
     }
-
-
 }
 
 declare module cc {
@@ -4986,80 +5120,80 @@ declare module cc {
          * @method setEnabled
          * @param {bool} bool
          */
-        setEnabled(bool:boolean) ;
+        setEnabled(bool: boolean);
 
         /**
          * @method getState
          * @return {cc.Control::State}
          */
-        getState():number;
+        getState(): number;
 
         /**
          * @method sendActionsForControlEvents
          * @param {cc.Control::EventType} arg0
          */
-        sendActionsForControlEvents(eventtype) ;
+        sendActionsForControlEvents(eventtype);
 
         /**
          * @method setSelected
          * @param {bool} arg0
          */
-        setSelected(bool:boolean) ;
+        setSelected(bool: boolean);
 
         /**
          * @method isEnabled
          * @return {bool}
          */
-        isEnabled():boolean ;
+        isEnabled(): boolean;
 
         /**
          * @method needsLayout
          */
-        needsLayout() ;
+        needsLayout();
 
         /**
          * @method hasVisibleParents
          * @return {bool}
          */
-        hasVisibleParents():boolean;
+        hasVisibleParents(): boolean;
 
         /**
          * @method isSelected
          * @return {bool}
          */
-        isSelected():boolean;
+        isSelected(): boolean;
 
         /**
          * @method isTouchInside
          * @param {cc.Touch} touch
          * @return {bool}
          */
-        isTouchInside(touch:Touch):boolean ;
+        isTouchInside(touch: Touch): boolean;
 
         /**
          * @method setHighlighted
          * @param {bool} bool
          */
-        setHighlighted(bool:boolean) ;
+        setHighlighted(bool: boolean);
 
         /**
          * @method getTouchLocation
          * @param {cc.Touch} touch
          * @return {cc.Point}
          */
-        getTouchLocation(touch:Touch):Point ;
+        getTouchLocation(touch: Touch): Point;
 
         /**
          * @method isHighlighted
          * @return {bool}
          */
-        isHighlighted():boolean;
+        isHighlighted(): boolean;
 
         /**
          * @method create
          * @return {cc.Control}
          */
-        static create():Control;
+        static create(): Control;
     }
 
     class ControlButton extends Control {
@@ -5113,11 +5247,11 @@ declare module cc {
         getSpace(): cp.Space;
     }
     class PhysicsSprite extends cc.Sprite {
-        static create(fileName?:string, rect?:Rect):PhysicsSprite;
+        static create(fileName?: string, rect?: Rect): PhysicsSprite;
         setBody(body: cp.Body);
         getBody(): cp.Body;
         getIgnoreBodyRotation(): boolean;
-        setIgnoreBodyRotation(bool :boolean);
+        setIgnoreBodyRotation(bool: boolean);
     }
 }
 
