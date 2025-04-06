@@ -17,13 +17,11 @@
         "jsx": "react-jsx",
         "baseUrl": ".",
         "paths": {
-            "*": ["src/*"],
-            "cocos2dx": ["cocos2dx"],
-            "cocos2dx/*": ["cocos2dx/*"]
+            "*": ["src/*"]
         },
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true
     },
-    "include": ["src", "cocos2dx"],
+    "include": ["src", "lite"],
     "exclude": ["node_modules", "**/node_modules/*", "./build/*", "./dist/*", "./extensions/*"]
 }

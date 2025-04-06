@@ -1,6 +1,6 @@
 {
     "name": "cocos2dx",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "description": "cocos2dx JS for module usage",
     "repository": "https://github.com/lexuantunght/cocos2dx",
     "homepage": "https://github.com/lexuantunght/cocos2dx#readme",
@@ -12,25 +12,16 @@
         "2d",
         "cc"
     ],
-    "main": "cocos2dx/index.js",
-    "types": "cocos2dx/index.d.ts",
+    "main": "src/index.js",
+    "types": "src/index.d.ts",
     "files": [
-        "cocos2dx"
+        "src",
+        "lite"
     ],
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "mp-pack-cli dev .",
-        "build": "mp-pack-cli build .",
-        "dist": "mp-pack-cli build:ssr index.js --outDir dist",
-        "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+        "test": "echo \"Error: no test specified\" && exit 1"
     },
     "devDependencies": {
-        "react": "17.0.2",
-        "react-dom": "17.0.2",
-        "@types/react": "^17",
-        "@types/react-dom": "^17",
-        "eslint": "^7.32.0",
-        "mp-pack-cli": "^1.2.1",
         "typescript": "^4.9.5"
     },
     "license": "MIT"

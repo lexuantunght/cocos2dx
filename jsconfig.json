@@ -19,6 +19,6 @@
             "*": ["src/*"]
         }
     },
-    "include": ["src", "cocos2dx"],
+    "include": ["src", "lite"],
     "exclude": ["node_modules", "**/node_modules/*"]
 }
