@@ -1,5 +1,5 @@
 import React from 'react';
-import { cc } from '../cocos2dx/index';
+import { cc } from 'cocos2dx/lite';
 
 function App() {
     React.useEffect(() => {
