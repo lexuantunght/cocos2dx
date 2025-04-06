@@ -1326,7 +1326,7 @@ declare module cc {
         ): void;
 
         // Preload resources for use later
-        preload(resources: string[], callback?: (errors: any[], resources: any[]) => void): void;
+        // preload(resources: string[], callback?: (errors: any[], resources: any[]) => void): void;
 
         // Get a cached resource
         getRes(url: string): any;

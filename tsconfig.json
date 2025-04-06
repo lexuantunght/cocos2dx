@@ -18,7 +18,8 @@
         "baseUrl": ".",
         "paths": {
             "*": ["src/*"],
-            "cocos2dx": ["cocos2dx"]
+            "cocos2dx": ["cocos2dx"],
+            "cocos2dx/*": ["cocos2dx/*"]
         },
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true
